@@ -1,0 +1,49 @@
+
+:root{
+  --bg:#f4f4f6; --card:#fff; --text:#17171a; --muted:#73737c; --line:#e6e6eb;
+  --accent:#111; --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Arial,sans-serif;color:var(--text)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:92px}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(244,244,246,.92);backdrop-filter:blur(14px);display:flex;justify-content:space-between;align-items:center;padding:20px 18px 10px}
+h1{font-size:32px;margin:0} h2{margin:0} h3{font-size:16px;margin:0 0 10px}
+.eyebrow{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.icon-btn{border:0;background:var(--card);border-radius:14px;width:44px;height:44px;font-size:20px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+#content{padding:8px 14px 24px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin:10px 0;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+.row{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}
+.muted{color:var(--muted)} .small{font-size:13px}.bold{font-weight:700}
+.lesson{display:grid;grid-template-columns:68px 1fr auto;gap:10px;align-items:center}
+.time{font-weight:800;font-size:18px}
+.badge{font-size:12px;padding:6px 9px;border-radius:999px;background:#efeff3;color:#52525a}
+.status-held{background:#e9f7ed}.status-not-held{background:#fff1ef}.status-moved{background:#fff7e5}
+.primary,.secondary,.ghost{border:0;border-radius:14px;padding:12px 14px;font-weight:700}
+.primary{background:var(--accent);color:#fff}.secondary{background:#efeff3;color:#222}.ghost{background:transparent}
+.full{width:100%;padding:15px}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,100%);display:grid;grid-template-columns:repeat(5,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid var(--line);backdrop-filter:blur(15px);z-index:10}
+.tabbar button{border:0;background:transparent;padding:5px 2px;color:#777;display:flex;flex-direction:column;align-items:center;gap:2px}.tabbar button.active{color:#111;font-weight:800}.tabbar span{font-size:20px}.tabbar small{font-size:10px}
+dialog{border:0;padding:0;background:transparent;width:100%;max-width:560px}
+dialog::backdrop{background:rgba(0,0,0,.42)}
+.sheet{background:var(--bg);border-radius:24px 24px 0 0;padding:10px 14px 28px;max-height:92dvh;overflow:auto;margin-top:auto}
+dialog[open]{display:flex;align-items:flex-end;min-height:100dvh}
+.small-sheet{padding-bottom:40px}
+.sheet-handle{width:42px;height:5px;background:#c9c9cf;border-radius:99px;margin:2px auto 12px}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#efeff3;border-radius:14px;padding:4px}
+.segmented button{border:0;background:transparent;padding:10px 6px;border-radius:10px;font-weight:700;font-size:13px}.segmented button.selected{background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.08)}
+textarea,input,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;outline:none}
+textarea:focus,input:focus,select:focus{border-color:#aaa}
+.school-choice{width:100%;text-align:left;border:0;background:#fff;border-radius:14px;padding:15px;margin-top:8px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#fff;border-radius:16px;padding:14px}.stat strong{font-size:24px;display:block}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#efeff3;border-radius:999px;padding:7px 10px;font-size:12px}
+.list-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.list-row:last-child{border-bottom:0}
+.audio{background:#111;color:white}.audio .muted{color:#aaa}
+.range{width:100%}
+
+.brand{font-size:19px;font-weight:900;letter-spacing:-.03em;margin-bottom:2px}
+.brand span{font-size:16px}
+.topbar h1{margin-top:3px}
