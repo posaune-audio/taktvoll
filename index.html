@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Taktvoll V0.5</title>
+<style>
+
+:root{
+  --bg:#f4f4f6; --card:#fff; --text:#17171a; --muted:#73737c; --line:#e6e6eb;
+  --accent:#111; --radius:18px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Arial,sans-serif;color:var(--text)}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{max-width:560px;margin:0 auto;min-height:100dvh;padding-bottom:92px}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(244,244,246,.92);backdrop-filter:blur(14px);display:flex;justify-content:space-between;align-items:center;padding:20px 18px 10px}
+h1{font-size:32px;margin:0} h2{margin:0} h3{font-size:16px;margin:0 0 10px}
+.eyebrow{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.icon-btn{border:0;background:var(--card);border-radius:14px;width:44px;height:44px;font-size:20px;box-shadow:0 1px 8px rgba(0,0,0,.06)}
+#content{padding:8px 14px 24px}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin:10px 0;box-shadow:0 1px 8px rgba(0,0,0,.04)}
+.row{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}
+.muted{color:var(--muted)} .small{font-size:13px}.bold{font-weight:700}
+.lesson{display:grid;grid-template-columns:68px 1fr auto;gap:10px;align-items:center}
+.time{font-weight:800;font-size:18px}
+.badge{font-size:12px;padding:6px 9px;border-radius:999px;background:#efeff3;color:#52525a}
+.status-held{background:#e9f7ed}.status-not-held{background:#fff1ef}.status-moved{background:#fff7e5}
+.primary,.secondary,.ghost{border:0;border-radius:14px;padding:12px 14px;font-weight:700}
+.primary{background:var(--accent);color:#fff}.secondary{background:#efeff3;color:#222}.ghost{background:transparent}
+.full{width:100%;padding:15px}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,100%);display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid var(--line);backdrop-filter:blur(15px);z-index:10}
+.tabbar button{border:0;background:transparent;padding:5px 2px;color:#777;display:flex;flex-direction:column;align-items:center;gap:2px}.tabbar button.active{color:#111;font-weight:800}.tabbar span{font-size:20px}.tabbar small{font-size:10px}
+dialog{border:0;padding:0;background:transparent;width:100%;max-width:560px}
+dialog::backdrop{background:rgba(0,0,0,.42)}
+.sheet{background:var(--bg);border-radius:24px 24px 0 0;padding:10px 14px 28px;max-height:92dvh;overflow:auto;margin-top:auto}
+dialog[open]{display:flex;align-items:flex-end;min-height:100dvh}
+.small-sheet{padding-bottom:40px}
+.sheet-handle{width:42px;height:5px;background:#c9c9cf;border-radius:99px;margin:2px auto 12px}
+.sheet-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#efeff3;border-radius:14px;padding:4px}
+.segmented button{border:0;background:transparent;padding:10px 6px;border-radius:10px;font-weight:700;font-size:13px}.segmented button.selected{background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.08)}
+textarea,input,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;outline:none}
+textarea:focus,input:focus,select:focus{border-color:#aaa}
+.school-choice{width:100%;text-align:left;border:0;background:#fff;border-radius:14px;padding:15px;margin-top:8px;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#fff;border-radius:16px;padding:14px}.stat strong{font-size:24px;display:block}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{background:#efeff3;border-radius:999px;padding:7px 10px;font-size:12px}
+.list-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}.list-row:last-child{border-bottom:0}
+.audio{background:#111;color:white}.audio .muted{color:#aaa}
+.range{width:100%}
+
+.brand{font-size:19px;font-weight:900;letter-spacing:-.03em;margin-bottom:2px}
+.brand span{font-size:16px}
+.topbar h1{margin-top:3px}
+
+</style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <div class="brand">Taktvoll <span>♪</span></div>
+        <div class="eyebrow">Das digitale Klassenbuch für Musikschulen</div>
+        <h1 id="page-title">Heute</h1>
+      </div>
+      <button class="icon-btn" id="schoolBtn" title="Schule wechseln">🏫</button>
+    </header>
+
+    <main id="content">
+      <div class="card">
+        <strong>Taktvoll wird geladen …</strong>
+      </div>
+    </main>
+
+    <nav class="tabbar">
+      <button data-tab="today" class="active"><span>✓</span><small>Anwesenheit</small></button>
+      <button data-tab="students"><span>👥</span><small>Ensembles & Schüler</small></button>
+      <button data-tab="library"><span>🎼</span><small>Bibliothek</small></button>
+      <button data-tab="docs"><span>📊</span><small>Doku</small></button>
+    </nav>
+  </div>
+
+  <dialog id="lessonDialog">
+    <form method="dialog" class="sheet" id="lessonForm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow" id="lessonMeta"></div>
+          <h2 id="lessonStudent"></h2>
+        </div>
+        <button value="cancel" class="icon-btn">✕</button>
+      </div>
+
+      <section class="card">
+        <h3>Letzte Stunde</h3>
+        <p id="lastLesson" class="muted"></p>
+      </section>
+
+      <section class="card">
+        <h3>Status</h3>
+        <div class="segmented" id="statusGroup">
+          <button type="button" data-status="held" class="selected">Gehalten</button>
+          <button type="button" data-status="not-held">Nicht gehalten</button>
+          <button type="button" data-status="moved">Verschoben</button>
+        </div>
+        <div id="statusExtra"></div>
+      </section>
+
+      <section class="card">
+        <div class="row between">
+          <h3>Unterrichtsstoff</h3>
+          <button type="button" id="dictateBtn" class="secondary">🎙️ Diktieren</button>
+        </div>
+        <textarea id="lessonContent" rows="5" placeholder="z. B. B-Dur Tonleiter, Bordogni Nr. 3 bis Takt 32, Lippenbindungen"></textarea>
+      </section>
+
+      <section class="card">
+        <h3>Optionale Hausübung</h3>
+        <textarea id="homework" rows="3" placeholder="Bleibt optional und erscheint nicht in der Jahresdokumentation"></textarea>
+      </section>
+
+      <button class="primary full" type="submit" value="default">Speichern & nächste Stunde</button>
+    </form>
+  </dialog>
+
+
+  <dialog id="ensembleDialog">
+    <form method="dialog" class="sheet" id="ensembleForm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow" id="ensembleMeta"></div>
+          <h2 id="ensembleName"></h2>
+        </div>
+        <button value="cancel" class="icon-btn">✕</button>
+      </div>
+
+      <section class="card">
+        <h3>Letzte Probe</h3>
+        <p id="ensembleLast" class="muted"></p>
+      </section>
+
+      <section class="card">
+        <h3>Status</h3>
+        <div class="segmented" id="ensembleStatusGroup">
+          <button type="button" data-status="held" class="selected">Gehalten</button>
+          <button type="button" data-status="not-held">Nicht gehalten</button>
+          <button type="button" data-status="moved">Verschoben</button>
+        </div>
+        <div id="ensembleStatusExtra"></div>
+      </section>
+
+      <section class="card" id="ensembleAttendanceCard">
+        <div class="row between">
+          <h3>Anwesenheit</h3>
+          <button type="button" class="secondary" id="ensembleAllPresent">Alle da</button>
+        </div>
+        <div id="ensembleMembers"></div>
+      </section>
+
+      <section class="card">
+        <div class="row between">
+          <h3>Unterrichtsstoff / Probenstoff</h3>
+          <button type="button" class="secondary" id="ensembleDictateBtn">🎙️ Diktieren</button>
+        </div>
+        <textarea id="ensembleContent" rows="5" placeholder="z. B. Einspielen, Intonation, Stück A Takt 1–80"></textarea>
+      </section>
+
+      <button class="primary full" type="submit" value="default">Speichern & nächste Stunde</button>
+    </form>
+  </dialog>
+
+
+  <dialog id="studentEditDialog">
+    <form method="dialog" class="sheet" id="studentEditForm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">Schüler bearbeiten</div>
+          <h2 id="studentEditTitle">Schüler</h2>
+        </div>
+        <button value="cancel" class="icon-btn">✕</button>
+      </div>
+
+      <section class="card">
+        <label class="small muted">Name</label>
+        <input id="editStudentName" placeholder="Vor- und Nachname">
+        <div style="height:10px"></div>
+
+        <label class="small muted">Instrument</label>
+        <input id="editStudentInstrument" placeholder="z. B. Posaune">
+        <div style="height:10px"></div>
+
+        <label class="small muted">Ausbildungsstufe</label>
+        <select id="editStudentLevel">
+          <option>Elementarstufe</option>
+          <option>Unterstufe</option>
+          <option>Mittelstufe</option>
+          <option>Oberstufe</option>
+        </select>
+        <div style="height:10px"></div>
+
+        <label class="small muted">Wochentag</label>
+        <select id="editStudentWeekday">
+          <option>Montag</option>
+          <option>Dienstag</option>
+          <option>Mittwoch</option>
+          <option>Donnerstag</option>
+          <option>Freitag</option>
+          <option>Samstag</option>
+          <option>Sonntag</option>
+        </select>
+        <div style="height:10px"></div>
+
+        <label class="small muted">Reguläre Unterrichtszeit</label>
+        <input id="editStudentTime" type="time">
+        <div style="height:10px"></div>
+
+        <label class="small muted">Musikschule</label>
+        <select id="editStudentSchool"></select>
+        <div style="height:10px"></div>
+
+        <label class="small muted">Standort</label>
+        <input id="editStudentLocation" placeholder="z. B. Standort Zentrum">
+      </section>
+
+      <section class="card">
+        <h3>Kontaktdaten</h3>
+        <label class="small muted">Telefon</label>
+        <input id="editStudentPhone" type="tel" placeholder="+43 ...">
+        <div style="height:10px"></div>
+
+        <label class="small muted">E-Mail</label>
+        <input id="editStudentEmail" type="email" placeholder="name@beispiel.at">
+        <div style="height:10px"></div>
+
+        <label class="small muted">Kontaktperson / Elternteil</label>
+        <input id="editStudentContactPerson" placeholder="Name">
+        <div style="height:10px"></div>
+
+        <label class="small muted">Interne Notiz</label>
+        <textarea id="editStudentNotes" rows="3" placeholder="Nur für den Lehrer sichtbar"></textarea>
+      </section>
+
+      <button class="primary full" type="submit" value="default">Speichern</button>
+      <button class="secondary full" type="button" id="deleteStudentBtn" style="margin-top:8px">Schüler entfernen</button>
+    </form>
+  </dialog>
+
+  <dialog id="ensembleEditDialog">
+    <form method="dialog" class="sheet" id="ensembleEditForm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">Ensemble bearbeiten</div>
+          <h2 id="ensembleEditTitle">Ensemble</h2>
+        </div>
+        <button value="cancel" class="icon-btn">✕</button>
+      </div>
+
+      <section class="card">
+        <label class="small muted">Ensemblename</label>
+        <input id="editEnsembleName" placeholder="z. B. Ensemble Tiefes Blech">
+        <div style="height:10px"></div>
+
+        <label class="small muted">Reguläre Zeit</label>
+        <input id="editEnsembleTime" type="time">
+      </section>
+
+      <section class="card">
+        <div class="row between">
+          <h3>Mitglieder</h3>
+          <button type="button" class="secondary" id="addMemberBtn">+ Mitglied</button>
+        </div>
+        <div id="ensembleEditMembers"></div>
+      </section>
+
+      <button class="primary full" type="submit" value="default">Ensemble speichern</button>
+    </form>
+  </dialog>
+
+  <dialog id="schoolDialog">
+    <form method="dialog" class="sheet small-sheet">
+      <div class="sheet-handle"></div>
+      <h2>Schule auswählen</h2>
+      <button class="school-choice" value="cancel" data-school="ms-a">Musikschule A · Niederösterreich</button>
+      <button class="school-choice" value="cancel" data-school="ms-b">Musikschule B · Steiermark</button>
+    </form>
+  </dialog>
+
+<script>
+window.addEventListener("DOMContentLoaded", function(){
+try {
+
+const state = {
+  school: "ms-a",
+  tab: "today",
+  currentLesson: null,
+  schools: {
+    "ms-a": {name:"Musikschule A", state:"Niederösterreich", location:"Standort Zentrum"},
+    "ms-b": {name:"Musikschule B", state:"Steiermark", location:"Standort Süd"}
+  },
+  students: [
+    {id:1,name:"Anna Berger",instrument:"Tenorhorn",school:"ms-a",location:"Standort Zentrum",weekday:"Donnerstag",time:"14:00",phone:"",email:"",contactPerson:"",notes:"",last:"B-Dur Tonleiter, Bel Canto – Andantino",level:"Unterstufe"},
+    {id:2,name:"Lukas Steiner",instrument:"Posaune",school:"ms-a",location:"Standort Zentrum",weekday:"Donnerstag",time:"14:30",phone:"",email:"",contactPerson:"",notes:"",last:"Bordogni Nr. 3, Lippenbindungen",level:"Mittelstufe"},
+    {id:3,name:"Marie Hofer",instrument:"Tuba",school:"ms-a",location:"Standort Zentrum",weekday:"Donnerstag",time:"15:00",phone:"",email:"",contactPerson:"",notes:"",last:"F-Dur, Artikulation, Etüde Nr. 4",level:"Unterstufe"},
+    {id:4,name:"Paul Gruber",instrument:"Posaune",school:"ms-b",location:"Standort Süd",weekday:"Mittwoch",time:"16:00",phone:"",email:"",contactPerson:"",notes:"",last:"Bel Canto – Allegro brillante",level:"Mittelstufe"}
+  ],
+  ensemble: {id:"ens-1",name:"Ensemble Tiefes Blech",school:"ms-a",time:"14:45",last:"Einspielen, Intonation, Stück A Takt 1–40",members:[
+    {name:"Anna Berger",present:true},{name:"Lukas Steiner",present:true},{name:"Marie Hofer",present:true}
+  ]},
+  logs: []
+};
+
+const titleMap = {today:"Anwesenheitsliste",students:"Ensembles und Schüler",library:"Bibliothek",docs:"Dokumentation"};
+const $ = q => document.querySelector(q);
+
+function currentSchool(){ return state.schools[state.school]; }
+
+function saveState(){
+  try{
+    localStorage.setItem("taktvoll_state_v04", JSON.stringify({
+      school:state.school,
+      students:state.students,
+      ensemble:state.ensemble,
+      logs:state.logs
+    }));
+  }catch(e){ console.warn("Speichern nicht möglich",e); }
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem("taktvoll_state_v04");
+    if(!raw) return;
+    const saved=JSON.parse(raw);
+    if(saved.school) state.school=saved.school;
+    if(Array.isArray(saved.students)) state.students=saved.students;
+    state.students = state.students.map(s=>({
+      location:"",
+      weekday:"Montag",
+      phone:"",
+      email:"",
+      contactPerson:"",
+      notes:"",
+      ...s
+    }));
+    if(saved.ensemble) state.ensemble=saved.ensemble;
+    if(Array.isArray(saved.logs)) state.logs=saved.logs;
+  }catch(e){ console.warn("Gespeicherte Daten konnten nicht geladen werden",e); }
+}
+
+function nextStudentId(){
+  const nums=state.students.map(s=>Number(s.id)).filter(Number.isFinite);
+  return (nums.length?Math.max(...nums):0)+1;
+}
+
+function render(){
+  $("#page-title").textContent = titleMap[state.tab];
+  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("active", b.dataset.tab===state.tab));
+  const views = {today:renderToday,students:renderStudents,library:renderLibrary,docs:renderDocs};
+  $("#content").innerHTML = views[state.tab]();
+  bindViewEvents();
+}
+
+function renderToday(){
+  const sc = currentSchool();
+  const students = state.students.filter(s=>s.school===state.school)
+    .map(s=>({...s,type:"student"}));
+  const items = [...students];
+
+  if(state.ensemble.school===state.school){
+    items.push({
+      id:state.ensemble.id,
+      name:state.ensemble.name,
+      school:state.ensemble.school,
+      time:state.ensemble.time,
+      type:"ensemble",
+      instrument:"Ensemble",
+      level:`${state.ensemble.members.length} Schüler`
+    });
+  }
+
+  items.sort((a,b)=>a.time.localeCompare(b.time));
+
+  return `
+    <div class="card">
+      <div class="eyebrow">${sc.state}</div>
+      <div class="row between">
+        <div><div class="bold">${sc.name}</div><div class="muted small">${sc.location}</div></div>
+        <span class="badge">Schuljahr 2026/27</span>
+      </div>
+    </div>
+
+    ${items.map(item=>`
+      <button class="card lesson ${item.type==="student"?"lesson-open":"ensemble-open"}"
+              data-id="${item.id}" style="width:100%;border:0;text-align:left">
+        <div class="time">${item.time}</div>
+        <div>
+          <div class="bold">${item.name}</div>
+          <div class="muted small">${item.instrument} · ${item.level}${item.type==="student" && item.location ? " · "+item.location : ""}</div>
+        </div>
+        <span>›</span>
+      </button>
+    `).join("")}
+
+    <div class="card">
+      <h3>Musikschulkalender</h3>
+      <div class="list-row"><span>🎄 Weihnachtskonzert</span><span class="muted small">12.12.</span></div>
+      <div class="list-row"><span>🎺 Klassenabend</span><span class="muted small">18.03.</span></div>
+      <button class="secondary full">+ Termin hinzufügen</button>
+    </div>`;
+}
+
+function renderStudents(){
+  const students = state.students.filter(s=>s.school===state.school);
+  const ensemble = state.ensemble.school===state.school ? state.ensemble : null;
+  return `
+    <div class="card">
+      <input placeholder="Schüler oder Ensemble suchen …">
+    </div>
+
+    <div class="row" style="margin:10px 0">
+      <button class="primary" id="addStudentBtn">+ Schüler</button>
+      ${ensemble ? `<button class="secondary" id="editEnsembleBtn">Ensemble bearbeiten</button>` : ""}
+    </div>
+
+    ${ensemble ? `
+    <div class="card">
+      <div class="eyebrow">Ensemble</div>
+      <div class="row between">
+        <div>
+          <div class="bold">${ensemble.name}</div>
+          <div class="muted small">${ensemble.members.length} Mitglieder · regulär ${ensemble.time}</div>
+        </div>
+        <button class="secondary" id="editEnsembleInlineBtn">Bearbeiten</button>
+      </div>
+      <div class="list-row"><span>Letzter Probenstoff</span><span class="muted small" style="max-width:55%;text-align:right">${ensemble.last||"–"}</span></div>
+      <div style="margin-top:10px">
+        <h3>Mitglieder</h3>
+        ${ensemble.members.map((m,i)=>`
+          <div class="list-row">
+            <span>${m.name}</span>
+            <button class="secondary member-edit-shortcut" data-i="${i}">Bearbeiten</button>
+          </div>`).join("")}
+      </div>
+    </div>` : ""}
+
+    <div class="eyebrow" style="padding:14px 4px 2px">Schüler</div>
+    ${students.map(s=>`
+    <div class="card">
+      <div class="row between">
+        <div>
+          <div class="bold">${s.name}</div>
+          <div class="muted small">${s.instrument} · ${s.level}</div>
+        </div>
+        <button class="secondary edit-student-btn" data-id="${s.id}">Bearbeiten</button>
+      </div>
+      <div class="list-row"><span>Unterricht</span><span class="muted small">${s.weekday||"–"} · ${s.time}</span></div>
+      <div class="list-row"><span>Musikschule</span><span class="muted small" style="text-align:right">${state.schools[s.school]?.name||"–"}${s.location?` · ${s.location}`:""}</span></div>
+      ${(s.phone||s.email||s.contactPerson) ? `
+      <div class="list-row"><span>Kontakt</span><span class="muted small" style="max-width:60%;text-align:right">${[s.contactPerson,s.phone,s.email].filter(Boolean).join(" · ")}</span></div>` : ""}
+      <div class="list-row"><span>Letzter Stoff</span><span class="muted small" style="max-width:55%;text-align:right">${s.last}</span></div>
+      <div class="list-row"><span>Bereits gespielte Musik</span><span>›</span></div>
+      <div class="list-row"><span>Prüfungen</span><span class="muted small">Bronze ✓ · Silber in Vorbereitung</span></div>
+    </div>`).join("")}`;
+}
+
+function renderLibrary(){
+  return `
+    <div class="card">
+      <input placeholder="Titel, Komponist, Schule …">
+      <div class="chips" style="margin-top:10px">
+        <span class="chip">Posaune</span><span class="chip">Tenorhorn</span><span class="chip">Tuba</span><span class="chip">Mittelstufe</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row between"><div><div class="bold">Bel Canto for Trombone</div><div class="muted small">Notensammlung · Mittelstufe</div></div><span class="badge">Papier + PDF</span></div>
+      <div class="list-row"><span>🎼 Allegro brillante</span><span>›</span></div>
+      <div class="list-row"><span>🎼 Andantino cantabile</span><span>›</span></div>
+      <div class="list-row"><span>🎧 12 Audiodateien</span><span>›</span></div>
+    </div>
+    <div class="card audio">
+      <div class="eyebrow">Playback</div>
+      <h3 style="margin-top:5px">Bordogni Nr. 3 · Piano</h3>
+      <p class="muted small">Tempo 76 % · Tonhöhe Original</p>
+      <input class="range" type="range" min="50" max="120" value="76">
+      <div class="row between" style="margin-top:12px">
+        <button class="secondary">♭ −1</button><button class="secondary">▶︎</button><button class="secondary">+1 ♯</button>
+      </div>
+      <button class="secondary full" style="margin-top:10px">▣ QR-Code erstellen</button>
+    </div>`;
+}
+
+function renderEnsembles(){
+  const e = state.ensemble;
+  return `
+    <div class="card">
+      <div class="eyebrow">${currentSchool().name}</div>
+      <h2>${e.name}</h2>
+      <p class="muted">${e.time} · ${e.members.length} Mitglieder</p>
+      <div class="segmented"><button class="selected">Gehalten</button><button>Nicht gehalten</button><button>Verschoben</button></div>
+    </div>
+    <div class="card">
+      <div class="row between"><h3>Anwesenheit</h3><button class="secondary" id="allPresent">Alle da</button></div>
+      ${e.members.map((m,i)=>`<div class="list-row"><span>${m.name}</span><button class="secondary member-toggle" data-i="${i}">${m.present?"✅ Anwesend":"❌ Nicht da"}</button></div>`).join("")}
+    </div>
+    <div class="card">
+      <div class="row between"><h3>Stoff</h3><button class="secondary">🎙️ Diktieren</button></div>
+      <textarea rows="4" placeholder="Probe, Stücke, Schwerpunkte …"></textarea>
+      <button class="primary full" style="margin-top:10px">Probe speichern</button>
+    </div>`;
+}
+
+function renderDocs(){
+  const held = state.logs.filter(l=>l.status==="held"||l.status==="moved").length;
+  const notHeld = state.logs.filter(l=>l.status==="not-held").length;
+  return `
+    <div class="grid2">
+      <div class="stat"><span class="muted small">Gehalten</span><strong>${held}</strong></div>
+      <div class="stat"><span class="muted small">Nicht gehalten</span><strong>${notHeld}</strong></div>
+    </div>
+    <div class="card">
+      <h3>Jahresdokumentation</h3>
+      <p class="muted small">Export getrennt nach Musikschule. Enthalten: Anwesenheit und Unterrichtsstoff. Hausübungen werden nicht exportiert.</p>
+      <button class="secondary full" id="pdfExportBtn">📄 PDF exportieren</button>
+      <button class="secondary full" style="margin-top:8px">📊 Excel exportieren</button>
+      <button class="secondary full" style="margin-top:8px">📁 CSV exportieren</button>
+    </div>
+    <div class="card">
+      <h3>Letzte Einträge</h3>
+      ${state.logs.length ? state.logs.slice().reverse().map(l=>`
+        <div class="list-row"><div><div class="bold">${l.student}</div><div class="muted small">${l.content||"–"}</div></div><span class="badge status-${l.status}">${labelStatus(l.status)}</span></div>
+      `).join("") : `<p class="muted">Noch keine Stunden dokumentiert.</p>`}
+    </div>`;
+}
+
+function labelStatus(s){ return {"held":"Gehalten","not-held":"Nicht gehalten","moved":"Verschoben"}[s]||s; }
+
+function bindViewEvents(){
+  document.querySelectorAll(".lesson-open").forEach(btn=>btn.addEventListener("click",()=>openLesson(Number(btn.dataset.id))));
+  document.querySelectorAll(".ensemble-open").forEach(btn=>btn.addEventListener("click",()=>openEnsemble(btn.dataset.id)));
+  document.querySelectorAll(".member-toggle").forEach(btn=>btn.addEventListener("click",()=>{
+    const i=Number(btn.dataset.i); state.ensemble.members[i].present=!state.ensemble.members[i].present; render();
+  }));
+  $("#allPresent")?.addEventListener("click",()=>{state.ensemble.members.forEach(m=>m.present=true);render();});
+  $("#pdfExportBtn")?.addEventListener("click",exportPdfReport);
+
+  $("#addStudentBtn")?.addEventListener("click",()=>openStudentEditor(null));
+  document.querySelectorAll(".edit-student-btn").forEach(btn=>btn.addEventListener("click",()=>openStudentEditor(Number(btn.dataset.id))));
+  $("#editEnsembleBtn")?.addEventListener("click",openEnsembleEditor);
+  $("#editEnsembleInlineBtn")?.addEventListener("click",openEnsembleEditor);
+  document.querySelectorAll(".member-edit-shortcut").forEach(btn=>btn.addEventListener("click",openEnsembleEditor));
+}
+
+
+function getDayItems(schoolId){
+  const items = state.students.filter(s=>s.school===schoolId).map(s=>({id:s.id,type:"student",time:s.time}));
+  if(state.ensemble.school===schoolId){
+    items.push({id:state.ensemble.id,type:"ensemble",time:state.ensemble.time});
+  }
+  return items.sort((a,b)=>a.time.localeCompare(b.time));
+}
+
+function openDayItem(item){
+  if(!item){ state.tab="today"; render(); return; }
+  if(item.type==="student") openLesson(Number(item.id));
+  else openEnsemble(item.id);
+}
+
+function nextDayItem(schoolId, currentId, currentType){
+  const items = getDayItems(schoolId);
+  const idx = items.findIndex(x=>String(x.id)===String(currentId) && x.type===currentType);
+  return idx>=0 ? items[idx+1] : null;
+}
+
+function openEnsemble(id){
+  const e=state.ensemble;
+  if(String(e.id)!==String(id)) return;
+  state.currentLesson={id:e.id,type:"ensemble",school:e.school,time:e.time,name:e.name};
+
+  $("#ensembleName").textContent=e.name;
+  $("#ensembleMeta").textContent=`${e.time} · Ensemble · ${currentSchool().name}`;
+  $("#ensembleLast").textContent=e.last || "Noch keine Probe dokumentiert.";
+  $("#ensembleContent").value="";
+  selectEnsembleStatus("held");
+  renderEnsembleMembers();
+  $("#ensembleDialog").showModal();
+}
+
+function renderEnsembleMembers(){
+  const box=$("#ensembleMembers");
+  if(!box) return;
+  box.innerHTML=state.ensemble.members.map((m,i)=>`
+    <div class="list-row">
+      <span>${m.name}</span>
+      <button type="button" class="secondary ensemble-member-toggle" data-i="${i}">
+        ${m.present?"✅ Anwesend":"❌ Nicht da"}
+      </button>
+    </div>`).join("");
+
+  document.querySelectorAll(".ensemble-member-toggle").forEach(btn=>btn.addEventListener("click",()=>{
+    const i=Number(btn.dataset.i);
+    state.ensemble.members[i].present=!state.ensemble.members[i].present;
+    renderEnsembleMembers();
+  }));
+}
+
+function selectEnsembleStatus(status){
+  
+$("#studentEditForm").addEventListener("submit",()=>{
+  const name=$("#editStudentName").value.trim();
+  if(!name){
+    alert("Bitte einen Namen eingeben.");
+    return;
+  }
+
+  if(editingStudentId===null){
+    state.students.push({
+      id:nextStudentId(),
+      name,
+      instrument:$("#editStudentInstrument").value.trim()||"Instrument",
+      school:$("#editStudentSchool").value||state.school,
+      location:$("#editStudentLocation").value.trim(),
+      weekday:$("#editStudentWeekday").value,
+      time:$("#editStudentTime").value||"14:00",
+      phone:$("#editStudentPhone").value.trim(),
+      email:$("#editStudentEmail").value.trim(),
+      contactPerson:$("#editStudentContactPerson").value.trim(),
+      notes:$("#editStudentNotes").value.trim(),
+      last:"Noch kein Unterrichtsstoff eingetragen.",
+      level:$("#editStudentLevel").value
+    });
+  }else{
+    const s=state.students.find(x=>x.id===editingStudentId);
+    if(s){
+      s.name=name;
+      s.instrument=$("#editStudentInstrument").value.trim()||"Instrument";
+      s.level=$("#editStudentLevel").value;
+      s.weekday=$("#editStudentWeekday").value;
+      s.time=$("#editStudentTime").value||s.time;
+      s.school=$("#editStudentSchool").value||s.school;
+      s.location=$("#editStudentLocation").value.trim();
+      s.phone=$("#editStudentPhone").value.trim();
+      s.email=$("#editStudentEmail").value.trim();
+      s.contactPerson=$("#editStudentContactPerson").value.trim();
+      s.notes=$("#editStudentNotes").value.trim();
+    }
+  }
+
+  saveState();
+  setTimeout(render,50);
+});
+
+$("#deleteStudentBtn").addEventListener("click",()=>{
+  if(editingStudentId===null) return;
+  const s=state.students.find(x=>x.id===editingStudentId);
+  if(!s) return;
+
+  if(confirm(`${s.name} wirklich entfernen? Bestehende Dokumentation bleibt erhalten.`)){
+    state.students=state.students.filter(x=>x.id!==editingStudentId);
+    editingStudentId=null;
+    saveState();
+    $("#studentEditDialog").close();
+    render();
+  }
+});
+
+$("#addMemberBtn").addEventListener("click",()=>{
+  state.ensemble.members.push({name:"Neues Mitglied",present:true});
+  renderEnsembleEditMembers();
+});
+
+$("#ensembleEditForm").addEventListener("submit",()=>{
+  document.querySelectorAll(".member-name-input").forEach(inp=>{
+    const i=Number(inp.dataset.i);
+    if(state.ensemble.members[i]) state.ensemble.members[i].name=inp.value.trim()||"Mitglied";
+  });
+
+  state.ensemble.name=$("#editEnsembleName").value.trim()||"Ensemble";
+  state.ensemble.time=$("#editEnsembleTime").value||state.ensemble.time;
+  saveState();
+  setTimeout(render,50);
+});
+
+document.querySelectorAll("#ensembleStatusGroup button").forEach(b=>b.classList.toggle("selected",b.dataset.status===status));
+  $("#ensembleForm").dataset.status=status;
+  $("#ensembleAttendanceCard").style.display = status==="held" || status==="moved" ? "" : "none";
+
+  if(status==="not-held"){
+    $("#ensembleStatusExtra").innerHTML=`<select style="margin-top:10px" id="ensembleReason">
+      <option>Schüler / Ensemble entschuldigt</option>
+      <option>Lehrer entschuldigt</option>
+      <option>Ferien</option>
+    </select>`;
+  } else if(status==="moved"){
+    $("#ensembleStatusExtra").innerHTML=`<input style="margin-top:10px" type="datetime-local" id="ensembleMovedDate">`;
+  } else {
+    $("#ensembleStatusExtra").innerHTML="";
+  }
+}
+
+
+let editingStudentId=null;
+
+function openStudentEditor(id){
+  editingStudentId=id;
+  const isNew=id===null;
+  const s=isNew ? {
+    name:"",
+    instrument:"",
+    level:"Elementarstufe",
+    weekday:"Montag",
+    time:"14:00",
+    school:state.school,
+    location:"",
+    phone:"",
+    email:"",
+    contactPerson:"",
+    notes:""
+  } : state.students.find(x=>x.id===id);
+
+  if(!s) return;
+
+  $("#studentEditTitle").textContent=isNew ? "Neuen Schüler anlegen" : s.name;
+  $("#editStudentName").value=s.name||"";
+  $("#editStudentInstrument").value=s.instrument||"";
+  $("#editStudentLevel").value=s.level||"Elementarstufe";
+  $("#editStudentWeekday").value=s.weekday||"Montag";
+  $("#editStudentTime").value=s.time||"14:00";
+
+  const schoolSelect=$("#editStudentSchool");
+  schoolSelect.innerHTML=Object.entries(state.schools).map(([id,sc])=>`<option value="${id}">${sc.name} · ${sc.state}</option>`).join("");
+  schoolSelect.value=s.school||state.school;
+
+  $("#editStudentLocation").value=s.location||"";
+  $("#editStudentPhone").value=s.phone||"";
+  $("#editStudentEmail").value=s.email||"";
+  $("#editStudentContactPerson").value=s.contactPerson||"";
+  $("#editStudentNotes").value=s.notes||"";
+  $("#deleteStudentBtn").style.display=isNew?"none":"block";
+  $("#studentEditDialog").showModal();
+}
+
+function openEnsembleEditor(){
+  $("#ensembleEditTitle").textContent=state.ensemble.name;
+  $("#editEnsembleName").value=state.ensemble.name||"";
+  $("#editEnsembleTime").value=state.ensemble.time||"17:00";
+  renderEnsembleEditMembers();
+  $("#ensembleEditDialog").showModal();
+}
+
+function renderEnsembleEditMembers(){
+  const box=$("#ensembleEditMembers");
+  if(!box) return;
+
+  box.innerHTML=state.ensemble.members.map((m,i)=>`
+    <div class="list-row">
+      <input class="member-name-input" data-i="${i}" value="${String(m.name).replace(/"/g,"&quot;")}" style="flex:1">
+      <button type="button" class="secondary remove-member-btn" data-i="${i}">Entfernen</button>
+    </div>`).join("");
+
+  document.querySelectorAll(".member-name-input").forEach(inp=>inp.addEventListener("input",()=>{
+    const i=Number(inp.dataset.i);
+    state.ensemble.members[i].name=inp.value;
+  }));
+
+  document.querySelectorAll(".remove-member-btn").forEach(btn=>btn.addEventListener("click",()=>{
+    const i=Number(btn.dataset.i);
+    if(confirm("Dieses Mitglied aus dem Ensemble entfernen?")){
+      state.ensemble.members.splice(i,1);
+      renderEnsembleEditMembers();
+    }
+  }));
+}
+function openLesson(id){
+  const s=state.students.find(x=>x.id===id); state.currentLesson=s;
+  $("#lessonStudent").textContent=s.name;
+  $("#lessonMeta").textContent=`${s.time} · ${s.instrument} · ${currentSchool().name}`;
+  $("#lastLesson").textContent=s.last;
+  $("#lessonContent").value="";
+  $("#homework").value="";
+  selectStatus("held");
+  $("#lessonDialog").showModal();
+}
+
+function selectStatus(status){
+  document.querySelectorAll("#statusGroup button").forEach(b=>b.classList.toggle("selected", b.dataset.status===status));
+  $("#lessonForm").dataset.status=status;
+  if(status==="not-held"){
+    $("#statusExtra").innerHTML=`<select style="margin-top:10px" id="reason"><option>Schüler entschuldigt</option><option>Lehrer entschuldigt</option><option>Ferien</option></select>`;
+  } else if(status==="moved"){
+    $("#statusExtra").innerHTML=`<input style="margin-top:10px" type="datetime-local" id="movedDate">`;
+  } else $("#statusExtra").innerHTML="";
+}
+
+document.querySelectorAll("#statusGroup button").forEach(b=>b.addEventListener("click",()=>selectStatus(b.dataset.status)));
+
+$("#lessonForm").addEventListener("submit",(e)=>{
+  if(!state.currentLesson) return;
+
+  const finishedLesson = state.currentLesson;
+  const status=e.currentTarget.dataset.status || "held";
+  const content=$("#lessonContent").value.trim();
+
+  state.logs.push({
+    kind:"student",
+    student:finishedLesson.name,
+    studentId:finishedLesson.id,
+    school:finishedLesson.school,
+    status,
+    content,
+    reason:$("#reason")?.value||"",
+    movedDate:$("#movedDate")?.value||"",
+    homework:$("#homework").value.trim(),
+    date:new Date().toISOString()
+  });
+
+  const s=state.students.find(x=>x.id===finishedLesson.id);
+  if(content && s) s.last=content;
+  saveState();
+
+  const next=nextDayItem(finishedLesson.school,finishedLesson.id,"student");
+  state.currentLesson=null;
+
+  setTimeout(()=>{
+    render();
+    openDayItem(next);
+  },120);
+});
+
+
+
+$("#studentEditForm").addEventListener("submit",()=>{
+  const name=$("#editStudentName").value.trim();
+  if(!name){
+    alert("Bitte einen Namen eingeben.");
+    return;
+  }
+
+  if(editingStudentId===null){
+    state.students.push({
+      id:nextStudentId(),
+      name,
+      instrument:$("#editStudentInstrument").value.trim()||"Instrument",
+      school:$("#editStudentSchool").value||state.school,
+      location:$("#editStudentLocation").value.trim(),
+      weekday:$("#editStudentWeekday").value,
+      time:$("#editStudentTime").value||"14:00",
+      phone:$("#editStudentPhone").value.trim(),
+      email:$("#editStudentEmail").value.trim(),
+      contactPerson:$("#editStudentContactPerson").value.trim(),
+      notes:$("#editStudentNotes").value.trim(),
+      last:"Noch kein Unterrichtsstoff eingetragen.",
+      level:$("#editStudentLevel").value
+    });
+  }else{
+    const s=state.students.find(x=>x.id===editingStudentId);
+    if(s){
+      s.name=name;
+      s.instrument=$("#editStudentInstrument").value.trim()||"Instrument";
+      s.level=$("#editStudentLevel").value;
+      s.weekday=$("#editStudentWeekday").value;
+      s.time=$("#editStudentTime").value||s.time;
+      s.school=$("#editStudentSchool").value||s.school;
+      s.location=$("#editStudentLocation").value.trim();
+      s.phone=$("#editStudentPhone").value.trim();
+      s.email=$("#editStudentEmail").value.trim();
+      s.contactPerson=$("#editStudentContactPerson").value.trim();
+      s.notes=$("#editStudentNotes").value.trim();
+    }
+  }
+
+  saveState();
+  setTimeout(render,50);
+});
+
+$("#deleteStudentBtn").addEventListener("click",()=>{
+  if(editingStudentId===null) return;
+  const s=state.students.find(x=>x.id===editingStudentId);
+  if(!s) return;
+
+  if(confirm(`${s.name} wirklich entfernen? Bestehende Dokumentation bleibt erhalten.`)){
+    state.students=state.students.filter(x=>x.id!==editingStudentId);
+    editingStudentId=null;
+    saveState();
+    $("#studentEditDialog").close();
+    render();
+  }
+});
+
+$("#addMemberBtn").addEventListener("click",()=>{
+  state.ensemble.members.push({name:"Neues Mitglied",present:true});
+  renderEnsembleEditMembers();
+});
+
+$("#ensembleEditForm").addEventListener("submit",()=>{
+  document.querySelectorAll(".member-name-input").forEach(inp=>{
+    const i=Number(inp.dataset.i);
+    if(state.ensemble.members[i]) state.ensemble.members[i].name=inp.value.trim()||"Mitglied";
+  });
+
+  state.ensemble.name=$("#editEnsembleName").value.trim()||"Ensemble";
+  state.ensemble.time=$("#editEnsembleTime").value||state.ensemble.time;
+  saveState();
+  setTimeout(render,50);
+});
+
+document.querySelectorAll("#ensembleStatusGroup button").forEach(b=>b.addEventListener("click",()=>selectEnsembleStatus(b.dataset.status)));
+
+$("#ensembleAllPresent").addEventListener("click",()=>{
+  state.ensemble.members.forEach(m=>m.present=true);
+  renderEnsembleMembers();
+});
+
+$("#ensembleForm").addEventListener("submit",(e)=>{
+  if(!state.currentLesson || state.currentLesson.type!=="ensemble") return;
+
+  const finished=state.currentLesson;
+  const status=e.currentTarget.dataset.status || "held";
+  const content=$("#ensembleContent").value.trim();
+  const attendance=state.ensemble.members.map(m=>({name:m.name,present:m.present}));
+
+  state.logs.push({
+    kind:"ensemble",
+    student:state.ensemble.name,
+    studentId:state.ensemble.id,
+    school:state.ensemble.school,
+    status,
+    content,
+    reason:$("#ensembleReason")?.value||"",
+    movedDate:$("#ensembleMovedDate")?.value||"",
+    attendance,
+    date:new Date().toISOString()
+  });
+
+  if(content) state.ensemble.last=content;
+  saveState();
+
+  const next=nextDayItem(finished.school,finished.id,"ensemble");
+  state.currentLesson=null;
+
+  setTimeout(()=>{
+    render();
+    openDayItem(next);
+  },120);
+});
+
+$("#ensembleDictateBtn").addEventListener("click",()=>{
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    alert("Auf dem iPhone kannst du die Diktierfunktion der Tastatur verwenden.");
+    return;
+  }
+  const rec=new SpeechRecognition();
+  rec.lang="de-AT";
+  rec.interimResults=false;
+  $("#ensembleDictateBtn").textContent="🎙️ Höre zu …";
+  rec.onresult=e=>{
+    $("#ensembleContent").value += ($("#ensembleContent").value?" ":"") + e.results[0][0].transcript;
+  };
+  rec.onend=()=>$("#ensembleDictateBtn").textContent="🎙️ Diktieren";
+  rec.start();
+});
+
+$("#dictateBtn").addEventListener("click",()=>{
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){ alert("Diktieren wird von diesem Browser nicht unterstützt. Auf dem iPhone kann alternativ die Diktierfunktion der Tastatur verwendet werden."); return; }
+  const rec = new SpeechRecognition(); rec.lang="de-AT"; rec.interimResults=false;
+  $("#dictateBtn").textContent="🎙️ Höre zu …";
+  rec.onresult=e=>{ $("#lessonContent").value += ( $("#lessonContent").value ? " " : "" ) + e.results[0][0].transcript; };
+  rec.onend=()=>$("#dictateBtn").textContent="🎙️ Diktieren";
+  rec.start();
+});
+
+document.querySelectorAll(".tabbar button").forEach(b=>b.addEventListener("click",()=>{state.tab=b.dataset.tab;render();}));
+$("#schoolBtn").addEventListener("click",()=>$("#schoolDialog").showModal());
+document.querySelectorAll(".school-choice").forEach(b=>b.addEventListener("click",()=>{state.school=b.dataset.school;saveState();render();}));
+
+
+function esc(v){
+  return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+
+function formatLogStatus(l){
+  if(l.status==="held") return "Stunde gehalten";
+  if(l.status==="moved") return l.movedDate ? `Gehalten – verschoben auf ${new Date(l.movedDate).toLocaleString("de-AT")}` : "Gehalten – verschoben";
+  if(l.status==="not-held") return `Nicht gehalten${l.reason ? " – "+l.reason : ""}`;
+  return l.status;
+}
+
+function exportPdfReport(){
+  const school=currentSchool();
+  const logs=state.logs.filter(l=>l.school===state.school);
+
+  if(!logs.length){
+    alert("Für diese Musikschule gibt es noch keine dokumentierten Stunden.");
+    return;
+  }
+
+  const rows=logs.map(l=>{
+    const d=new Date(l.date).toLocaleDateString("de-AT");
+    let content=l.content||"–";
+    if(l.kind==="ensemble" && l.attendance){
+      const absent=l.attendance.filter(a=>!a.present).map(a=>a.name);
+      if(absent.length) content += ` | Abwesend: ${absent.join(", ")}`;
+    }
+    return `<tr>
+      <td>${esc(d)}</td>
+      <td>${esc(l.student)}</td>
+      <td>${esc(formatLogStatus(l))}</td>
+      <td>${esc(content)}</td>
+    </tr>`;
+  }).join("");
+
+  const report=`<!doctype html>
+  <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+  <title>Taktvoll Jahresdokumentation</title>
+  <style>
+    body{font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;margin:28px;color:#111}
+    h1{margin:0 0 5px;font-size:26px} p{color:#555;margin-top:0}
+    table{width:100%;border-collapse:collapse;margin-top:24px;font-size:12px}
+    th,td{border:1px solid #ccc;padding:8px;vertical-align:top;text-align:left}
+    th{background:#f2f2f2}
+    @media print{body{margin:12mm} button{display:none}}
+  </style></head><body>
+    <h1>Taktvoll – Jahresdokumentation</h1>
+    <p>${esc(school.name)} · ${esc(school.state)} · Schuljahr 2026/27</p>
+    <table>
+      <thead><tr><th>Datum</th><th>Schüler / Ensemble</th><th>Status</th><th>Unterrichtsstoff</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <script>setTimeout(()=>window.print(),400)<\/script>
+  </body></html>`;
+
+  const w=window.open("","_blank");
+  if(!w){
+    alert("Bitte Pop-ups für Taktvoll erlauben, damit die PDF-Ansicht geöffnet werden kann.");
+    return;
+  }
+  w.document.open();
+  w.document.write(report);
+  w.document.close();
+}
+
+
+loadState();
+render();
+
+} catch (err) {
+  console.error(err);
+  var c = document.getElementById("content");
+  if (c) c.innerHTML = '<div class="card"><strong>Fehler beim Laden</strong><p class="muted">Bitte Seite neu laden. Technische Meldung: ' + String(err.message || err) + '</p></div>';
+}
+});
+</script>
+</body>
+</html>
