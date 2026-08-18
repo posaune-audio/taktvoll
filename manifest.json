@@ -1,8 +1,0 @@
-{
-  "name": "Taktvoll",
-  "short_name": "Taktvoll",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#f4f4f6",
-  "theme_color": "#ffffff"
-}
