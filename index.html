@@ -5642,6 +5642,20 @@ input[type="number"]{
   font-weight:850;
 }
 
+
+/* V0.26.47 – schulfreie Tage direkt in der Anwesenheitsliste */
+.lesson-auto-free-day{
+  border:1px solid #efc4c0 !important;
+  background:#fff5f4 !important;
+}
+.lesson-auto-free-day .time{
+  color:#a52a20 !important;
+}
+.free-day{
+  border:1px solid #efc4c0 !important;
+  background:#fff5f4 !important;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5654,7 +5668,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.46 – automatische Schulfrei-Vorauswahl nach Bundesland -->
+<!-- Taktvoll V0.26.47 – schulfreie Tage vollständig in der Anwesenheitsliste -->
 </head>
 <body>
   <div class="app">
@@ -8421,6 +8435,14 @@ const TAKTVOLL_SCHOOL_YEAR_2026_27={
 };
 
 function schoolVacationInfo(date,stateName){
+  /* Schuljahr 2025/26 – wichtig für Juli/August/September 2026. */
+  if(["Burgenland","Niederösterreich","Wien"].includes(stateName) &&
+     dateInRange(date,"2026-07-04","2026-09-06")) return "Sommerferien";
+
+  if(["Kärnten","Oberösterreich","Salzburg","Steiermark","Tirol","Vorarlberg"].includes(stateName) &&
+     dateInRange(date,"2026-07-11","2026-09-13")) return "Sommerferien";
+
+  /* Schuljahr 2026/27 */
   if(dateInRange(date,"2026-10-27","2026-10-31")) return "Herbstferien";
   if(dateInRange(date,"2026-12-24","2027-01-06")) return "Weihnachtsferien";
   if(dateInRange(date,"2027-03-20","2027-03-29")) return "Osterferien";
@@ -8440,34 +8462,69 @@ function schoolVacationInfo(date,stateName){
 
 function publicHolidayInfo(date){
   const fixed={
+    /* Kalenderjahr 2026 */
+    "2026-01-01":"Neujahr",
+    "2026-01-06":"Heilige Drei Könige",
+    "2026-04-06":"Ostermontag",
+    "2026-05-01":"Staatsfeiertag",
+    "2026-05-14":"Christi Himmelfahrt",
+    "2026-05-25":"Pfingstmontag",
+    "2026-06-04":"Fronleichnam",
+    "2026-08-15":"Mariä Himmelfahrt",
     "2026-10-26":"Nationalfeiertag",
     "2026-11-01":"Allerheiligen",
     "2026-11-02":"Allerseelen",
     "2026-12-08":"Mariä Empfängnis",
     "2026-12-25":"Christtag",
     "2026-12-26":"Stefanitag",
+
+    /* Kalenderjahr 2027 */
     "2027-01-01":"Neujahr",
     "2027-01-06":"Heilige Drei Könige",
     "2027-03-29":"Ostermontag",
     "2027-05-01":"Staatsfeiertag",
     "2027-05-06":"Christi Himmelfahrt",
     "2027-05-17":"Pfingstmontag",
-    "2027-05-27":"Fronleichnam"
+    "2027-05-27":"Fronleichnam",
+    "2027-08-15":"Mariä Himmelfahrt"
   };
   return fixed[date]||null;
 }
 
 function statePatronHoliday(date,stateName){
   const patronDays={
-    "Burgenland":{"2026-11-11":"Festtag Landespatron – Hl. Martin"},
-    "Kärnten":{"2027-03-19":"Festtag Landespatron – Hl. Josef"},
-    "Niederösterreich":{"2026-11-15":"Festtag Landespatron – Hl. Leopold"},
-    "Oberösterreich":{"2027-05-04":"Festtag Landespatron – Hl. Florian"},
-    "Salzburg":{"2026-09-24":"Festtag Landespatron – Hl. Rupert"},
-    "Steiermark":{"2027-03-19":"Festtag Landespatron – Hl. Josef"},
-    "Tirol":{"2027-03-19":"Festtag Landespatron – Hl. Josef"},
-    "Vorarlberg":{"2027-03-19":"Festtag Landespatron – Hl. Josef"},
-    "Wien":{"2026-11-15":"Festtag Landespatron – Hl. Leopold"}
+    "Burgenland":{
+      "2026-11-11":"Festtag Landespatron – Hl. Martin"
+    },
+    "Kärnten":{
+      "2026-03-19":"Festtag Landespatron – Hl. Josef",
+      "2027-03-19":"Festtag Landespatron – Hl. Josef"
+    },
+    "Niederösterreich":{
+      "2026-11-15":"Festtag Landespatron – Hl. Leopold"
+    },
+    "Oberösterreich":{
+      "2026-05-04":"Festtag Landespatron – Hl. Florian",
+      "2027-05-04":"Festtag Landespatron – Hl. Florian"
+    },
+    "Salzburg":{
+      "2026-09-24":"Festtag Landespatron – Hl. Rupert"
+    },
+    "Steiermark":{
+      "2026-03-19":"Festtag Landespatron – Hl. Josef",
+      "2027-03-19":"Festtag Landespatron – Hl. Josef"
+    },
+    "Tirol":{
+      "2026-03-19":"Festtag Landespatron – Hl. Josef",
+      "2027-03-19":"Festtag Landespatron – Hl. Josef"
+    },
+    "Vorarlberg":{
+      "2026-03-19":"Festtag Landespatron – Hl. Josef",
+      "2027-03-19":"Festtag Landespatron – Hl. Josef"
+    },
+    "Wien":{
+      "2026-11-15":"Festtag Landespatron – Hl. Leopold"
+    }
   };
   return patronDays[stateName]?.[date]||null;
 }
@@ -8657,10 +8714,10 @@ function renderFreeDayWarnings(items){
         <div style="font-size:22px;font-weight:900;color:#b42318;margin-bottom:4px">SCHULFREI</div>
         <h3>${info}</h3>
         <p class="small">${sc.name} · ${sc.state}</p>
-        <p class="small">Beim Öffnen einer Stunde wird automatisch „Nicht gehalten“ mit Grund „Schulfrei – ${info}“ vorausgewählt.</p>
+        <p class="small"><strong>Der gesamte Unterrichtstag ist schulfrei.</strong> Alle geplanten Schüler:innen und Ergänzungsfächer sind unten bereits als „Nicht gehalten · Schulfrei“ vorausgewählt.</p>
         ${allSaved
           ? `<strong>✓ Gesamter Tag bereits gespeichert</strong>`
-          : `<button class="danger full save-free-day-btn" data-school="${id}">Alle Schüler als entschuldigt wegen Schulfrei markieren</button>`}
+          : `<button class="danger full save-free-day-btn" data-school="${id}">Schulfrei für alle speichern</button>`}
       </div>`;
   }).join("");
 }
@@ -8714,6 +8771,7 @@ function renderToday(){
       const item=entry.item;
       const sc=state.schools[item.school]||{name:"Unbekannte Musikschule"};
       const saved=dayLogForItem(item);
+      const automaticFreeDayReason=freeDayInfoForSchoolOnDate(item.school,state.selectedAttendanceDate);
       let badge="",badgeClass="status-held",extra="";
       if(item.type==="supplementary" && item.supplementaryType==="irregular"){
         const subject=supplementaryById(item.id);
@@ -8734,6 +8792,12 @@ function renderToday(){
         badge=saved.status==="held"?"✓ Gehalten":saved.status==="moved"?"↔ Verschoben":
           saved.reason?.includes("Schulfrei")?"🔴 Schulfrei":"○ Nicht gehalten";
         if(saved.status==="not-held") badgeClass="status-not-held";
+      }else if(automaticFreeDayReason){
+        /* Noch nicht gespeichert, aber für einen offiziell schulfreien Tag
+           bereits klar als Nicht gehalten / Schulfrei vorausgewählt anzeigen. */
+        badge=`○ Nicht gehalten · Schulfrei`;
+        badgeClass="status-not-held";
+        extra=`Vorausgewählt: ${automaticFreeDayReason}`;
       }
 
       const documented=(saved && saved.status!=="unrecorded") ||
@@ -8741,7 +8805,7 @@ function renderToday(){
         irregularStatusForDate(supplementaryById(item.id)).credited>0);
 
       return `
-        <button class="card lesson ${item.type==="student"?"lesson-open":"supplementary-open"} ${documented?"lesson-documented":"lesson-open-pending"}"
+        <button class="card lesson ${item.type==="student"?"lesson-open":"supplementary-open"} ${documented?"lesson-documented":"lesson-open-pending"} ${automaticFreeDayReason && !saved?"lesson-auto-free-day":""}"
                 data-id="${item.id}" style="width:100%;border:0;text-align:left">
           <div class="time">${item.time}</div>
           <div>
