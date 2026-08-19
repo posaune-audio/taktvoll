@@ -5645,7 +5645,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.43 – Status Nicht erfasst + nächste Stunde startet oben -->
+<!-- Taktvoll V0.26.44 – Service-Worker-Cache-Reset + V0.26.43 Funktionen -->
 </head>
 <body>
   <div class="app">
@@ -15481,10 +15481,26 @@ window.addEventListener("popstate",()=>{
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js?v=3")
+    navigator.serviceWorker.register("./service-worker.js?v=44",{updateViaCache:"none"})
+      .then(reg=>reg.update().catch(()=>{}))
       .catch(err => console.warn("Service Worker:", err));
   });
 }
 </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  let taktvollReloadedForSW=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    if(taktvollReloadedForSW) return;
+    taktvollReloadedForSW=true;
+    if(sessionStorage.getItem("taktvoll_sw44_reloaded")!=="1"){
+      sessionStorage.setItem("taktvoll_sw44_reloaded","1");
+      location.reload();
+    }
+  });
+}
+</script>
+
 </body>
 </html>
