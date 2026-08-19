@@ -4844,6 +4844,43 @@ input[type="number"]{
   min-height:40px !important;
 }
 
+
+/* V0.26.28 – Vor-/Nachname + Stundenplan-Suche */
+.student-name-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.planner-entity-search{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:7px;
+  margin:7px 0 9px;
+  padding:7px 10px;
+  border:1px solid #dedee3;
+  border-radius:13px;
+  background:#fff;
+}
+.planner-entity-search > span{
+  color:#85858d;
+  font-size:19px;
+}
+.planner-entity-search input{
+  min-width:0;
+  min-height:40px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  font-size:16px !important;
+}
+@media(max-width:390px){
+  .student-name-grid{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4856,7 +4893,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.27 – iPhone Eingabefelder ohne Auto-Zoom -->
+<!-- Taktvoll V0.26.28 – Vor-/Nachname und Stundenplan-Suche -->
 </head>
 <body>
   <div class="app">
@@ -5691,6 +5728,13 @@ input[type="number"]{
 
         <div id="plannerEntityFields" style="margin-top:12px">
           <label class="small muted">Schüler / Ergänzungsfach auswählen</label>
+          <div class="planner-entity-search">
+            <span>⌕</span>
+            <input id="plannerEntitySearch"
+                   type="search"
+                   placeholder="Schüler oder Ergänzungsfach suchen …"
+                   autocomplete="off">
+          </div>
           <div class="planner-assignment-legend">
             <span class="legend-unplanned">Noch nicht eingeteilt</span>
             <span class="legend-planned">Bereits eingeteilt</span>
@@ -5705,9 +5749,7 @@ input[type="number"]{
           <div style="height:10px"></div>
           <label class="small muted">Dauer in Minuten</label>
           <input id="plannerCustomMinutes" type="number" min="1" step="5" value="15" inputmode="numeric">
-          <div style="height:10px"></div>
-          <label class="small muted">Musikschule</label>
-          <select id="plannerCustomSchool"></select>
+
         </div>
       </section>
 
@@ -5923,8 +5965,16 @@ input[type="number"]{
       </div>
 
       <section class="card">
-        <label class="small muted">Name</label>
-        <input id="editStudentName" placeholder="Vor- und Nachname">
+        <div class="student-name-grid">
+          <div>
+            <label class="small muted">Vorname</label>
+            <input id="editStudentFirstName" placeholder="Vorname" autocomplete="given-name">
+          </div>
+          <div>
+            <label class="small muted">Nachname</label>
+            <input id="editStudentLastName" placeholder="Nachname" autocomplete="family-name">
+          </div>
+        </div>
         <div style="height:10px"></div>
 
         <label class="small muted">Unterrichtsinstrument</label>
@@ -7125,6 +7175,7 @@ function loadState(){
       manualOrder:Number.isFinite(item.manualOrder) ? item.manualOrder : 0,
       createdAt:item.createdAt || "2026-01-01T00:00:00"
     }));
+    normalizeStudentNames();
     Object.keys(state.schools).forEach(id=>{
       if(!Array.isArray(state.calendars[id])) state.calendars[id]=[];
     });
@@ -8192,6 +8243,7 @@ let plannerDraft={};
 let plannerArchiveId=null;
 let timetableSaveMode="new";
 let plannerItemDay=null;
+let plannerEntitySearch="";
 let plannerItemTypeMode="entity";
 let activeShiftTab="shifts";
 let resolvingShiftId=null;
@@ -8271,7 +8323,22 @@ function renderPlannerEntityList(){
   const box=$("#plannerEntityList");
   if(!box) return;
 
-  const entities=availablePlannerEntities();
+  const term=(plannerEntitySearch||"").trim().toLowerCase();
+  const entities=availablePlannerEntities().filter(e=>{
+    if(!term) return true;
+    const entity=plannerEntityByKey(e.key);
+    const haystack=[
+      e.name,
+      e.unit,
+      e.instrument,
+      entity?.firstName,
+      entity?.lastName,
+      entity?.location,
+      schoolShortName(e.school),
+      e.type==="supplementary"?"Ergänzungsfach":"Schüler"
+    ].filter(Boolean).join(" ").toLowerCase();
+    return haystack.includes(term);
+  });
   const selected=$("#plannerEntitySelectedKey")?.value||"";
 
   box.innerHTML=entities.length ? entities.map(e=>{
@@ -8298,7 +8365,7 @@ function renderPlannerEntityList(){
     `;
   }).join("") : `
     <div class="planner-entity-empty">
-      Keine Schüler oder Ergänzungsfächer für diese Auswahl vorhanden.
+      ${term?"Keine passenden Schüler oder Ergänzungsfächer gefunden.":"Keine Schüler oder Ergänzungsfächer für diese Auswahl vorhanden."}
     </div>
   `;
 
@@ -8385,7 +8452,7 @@ function renderPlannerWeek(){
           let title="",meta="";
           if(row.type==="custom"){
             title=row.title||"Eigene Einheit";
-            meta=`${row.duration} Min · ${schoolShortName(row.school)}`;
+            meta=`${row.duration} Min`;
           }else{
             const entity=plannerEntityByKey(entityKey(row.type,row.id));
             title=entity?.name||row.snapshotName||"Archivierter Eintrag";
@@ -8689,11 +8756,13 @@ function openPlannerItemDialog(day){
   $("#plannerItemDialogTitle").textContent=`${day} · Einheit hinzufügen`;
 
   $("#plannerEntitySelectedKey").value="";
+  plannerEntitySearch="";
+  $("#plannerEntitySearch").value="";
+  $("#plannerEntitySearch").oninput=e=>{
+    plannerEntitySearch=e.target.value||"";
+    renderPlannerEntityList();
+  };
   renderPlannerEntityList();
-
-  $("#plannerCustomSchool").innerHTML=Object.entries(state.schools)
-    .filter(([id])=>plannerScope==="all"||id===plannerScope)
-    .map(([id,s])=>`<option value="${id}">${s.name}</option>`).join("");
 
   $("#plannerCustomTitle").value="";
   $("#plannerCustomMinutes").value="15";
@@ -8715,8 +8784,13 @@ function addPlannerItem(){
     const duration=Math.max(1,Number($("#plannerCustomMinutes").value)||0);
     if(!title){alert("Bitte eine Bezeichnung eingeben.");return;}
     plannerDraft[plannerItemDay].items.push({
-      id:newPlannerCustomId(),type:"custom",title,duration,
-      school:$("#plannerCustomSchool").value||state.school
+      id:newPlannerCustomId(),
+      type:"custom",
+      title,
+      duration,
+      // Eigene Einheiten zeigen keine Musikschule an.
+      // Bei einem schulbezogenen Plan bleibt der Scope nur intern erhalten.
+      school:plannerScope==="all"?"":plannerScope
     });
   }
   $("#plannerItemDialog").close();
@@ -9113,6 +9187,8 @@ function studentOverviewSearchSuggestions(query){
       .forEach(s=>{
         const haystack=[
           s.name,
+          s.firstName,
+          s.lastName,
           s.instrument,
           s.level,
           s.location,
@@ -9258,7 +9334,7 @@ function renderStudents(){
   const schoolBlocks=schoolEntries.map(([schoolId,school])=>{
     const students=state.students.filter(s=>s.school===schoolId).sort(alphaByName);
     const subjects=(state.supplementarySubjects||[]).filter(s=>s.school===schoolId).sort(alphaByName);
-    const matchingStudents=!q?students:students.filter(s=>[s.name,s.instrument,s.level,s.location,s.unit].some(matches));
+    const matchingStudents=!q?students:students.filter(s=>[s.name,s.firstName,s.lastName,s.instrument,s.level,s.location,s.unit].some(matches));
     const matchingSubjects=!q?subjects:subjects.filter(s=>[s.name,s.location,s.unit,s.type==="irregular"?"unregelmäßig":"regelmäßig"].some(matches));
     const schoolMatches=!q||[school.name,school.state,...(school.locations||[])].some(matches);
     if(q && !(schoolMatches||matchingStudents.length||matchingSubjects.length)) return "";
@@ -9309,7 +9385,7 @@ function renderStudents(){
                   <div class="list-row student-overview-row"
                        data-section-item-id="${s.id}"
                        data-section-item-name="${String(s.name||"").replace(/"/g,"&quot;")}"
-                       data-section-item-search="${[s.name,s.instrument,s.level,s.location,s.unit].filter(Boolean).join(" ").replace(/"/g,"&quot;")}">
+                       data-section-item-search="${[s.name,s.firstName,s.lastName,s.instrument,s.level,s.location,s.unit].filter(Boolean).join(" ").replace(/"/g,"&quot;")}">
                     <div class="student-overview-copy">
                       <div class="bold">${s.name}</div>
                       <div class="muted small">${s.unit||"E30"} ${s.instrument||""} · ${s.level||""}</div>
@@ -10111,12 +10187,49 @@ function openSchoolEditor(id=null){
   $("#schoolEditDialog").showModal();
 }
 
+
+function splitStudentName(student){
+  const explicitFirst=String(student?.firstName||"").trim();
+  const explicitLast=String(student?.lastName||"").trim();
+  if(explicitFirst || explicitLast){
+    return {firstName:explicitFirst,lastName:explicitLast};
+  }
+
+  const full=String(student?.name||"").trim();
+  if(!full) return {firstName:"",lastName:""};
+
+  const parts=full.split(/\s+/);
+  if(parts.length===1) return {firstName:parts[0],lastName:""};
+
+  return {
+    firstName:parts.slice(0,-1).join(" "),
+    lastName:parts[parts.length-1]
+  };
+}
+
+function studentFullName(firstName,lastName){
+  return [String(firstName||"").trim(),String(lastName||"").trim()]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function normalizeStudentNames(){
+  (state.students||[]).forEach(s=>{
+    const parts=splitStudentName(s);
+    if(!s.firstName) s.firstName=parts.firstName;
+    if(!s.lastName) s.lastName=parts.lastName;
+    s.name=studentFullName(s.firstName,s.lastName)||s.name||"";
+  });
+}
+
 function openStudentEditor(id=null){
   editingStudentId=id;
   const isNew=id===null;
 
   const s=isNew ? {
     name:"",
+    firstName:"",
+    lastName:"",
     instrument:"",
     instrumentOwnership:"own",
     loanInstrumentLabel:"",
@@ -10134,8 +10247,10 @@ function openStudentEditor(id=null){
 
   if(!s) return;
 
-  $("#studentEditTitle").textContent=isNew ? "Neuen Schüler anlegen" : s.name;
-  $("#editStudentName").value=s.name||"";
+  const nameParts=splitStudentName(s);
+  $("#studentEditTitle").textContent=isNew ? "Neuen Schüler anlegen" : (s.name||studentFullName(nameParts.firstName,nameParts.lastName));
+  $("#editStudentFirstName").value=nameParts.firstName;
+  $("#editStudentLastName").value=nameParts.lastName;
   $("#editStudentInstrument").value=s.instrument||"";
   $("#editStudentInstrumentOwnership").value=s.instrumentOwnership==="loan"?"loan":"own";
   $("#editStudentLoanInstrumentLabel").value=s.loanInstrumentLabel||"";
@@ -11592,9 +11707,12 @@ $("#deleteSchoolBtn").addEventListener("click",()=>{
 });
 
 $("#studentEditForm").addEventListener("submit",()=>{
-  const name=$("#editStudentName").value.trim();
-  if(!name){
-    alert("Bitte einen Namen eingeben.");
+  const firstName=$("#editStudentFirstName").value.trim();
+  const lastName=$("#editStudentLastName").value.trim();
+  const name=studentFullName(firstName,lastName);
+
+  if(!firstName || !lastName){
+    alert("Bitte Vorname und Nachname eingeben.");
     return;
   }
 
@@ -11602,6 +11720,8 @@ $("#studentEditForm").addEventListener("submit",()=>{
     state.students.push({
       id:nextStudentId(),
       name,
+      firstName,
+      lastName,
       instrument:$("#editStudentInstrument").value.trim()||"Instrument",
       instrumentOwnership:$("#editStudentInstrumentOwnership").value==="loan"?"loan":"own",
       loanInstrumentLabel:$("#editStudentInstrumentOwnership").value==="loan"
@@ -11622,6 +11742,8 @@ $("#studentEditForm").addEventListener("submit",()=>{
   }else{
     const s=state.students.find(x=>x.id===editingStudentId);
     if(s){
+      s.firstName=firstName;
+      s.lastName=lastName;
       s.name=name;
       s.instrument=$("#editStudentInstrument").value.trim()||"Instrument";
       s.instrumentOwnership=$("#editStudentInstrumentOwnership").value==="loan"?"loan":"own";
@@ -12572,8 +12694,8 @@ function timetableRowsForDay(day,schoolScope="all"){
         start:b.time,
         end:minutesToClock(start+duration),
         title:b.title||"Eigene Einheit",
-        school:b.school,
-        schoolName:state.schools[b.school]?.name||"Musikschule",
+        school:b.school||"",
+        schoolName:"",
         meta:`${duration} Min`
       });
     });
