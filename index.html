@@ -5418,6 +5418,148 @@ input[type="number"]{
   min-width:0;
 }
 
+
+/* V0.26.38 – Anwesenheit: Inhalt scrollt, Footer bleibt wirklich separat fix */
+#lessonDialog,
+#ensembleDialog{
+  overflow:hidden !important;
+}
+#lessonDialog > form.sheet,
+#ensembleDialog > form.sheet{
+  max-height:90dvh !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+  padding-bottom:0 !important;
+}
+#lessonDialog .sheet-head,
+#ensembleDialog .sheet-head{
+  flex:0 0 auto !important;
+}
+#lessonDialog .lesson-dialog-scroll,
+#ensembleDialog .lesson-dialog-scroll{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior:contain;
+  padding-bottom:12px;
+}
+#lessonDialog > form.sheet > button.primary.full,
+#ensembleDialog > form.sheet > button.primary.full{
+  flex:0 0 auto !important;
+  position:relative !important;
+  bottom:auto !important;
+  margin:0 -14px -14px !important;
+  width:calc(100% + 28px) !important;
+  min-height:58px;
+  border-radius:0 0 20px 20px !important;
+  z-index:30;
+  box-shadow:0 -8px 20px rgba(0,0,0,.08);
+}
+#lessonDialog .lesson-dialog-scroll > section.card:last-child,
+#ensembleDialog .lesson-dialog-scroll > section.card:last-child{
+  margin-bottom:4px;
+}
+
+/* V0.26.38 – Datum: manuelle Eingabe nur bei Bedarf sichtbar */
+.taktvoll-date-entry.compact{
+  display:block;
+  margin-top:2px;
+}
+.taktvoll-date-main-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+  align-items:center;
+}
+.taktvoll-date-main-row > input[type="date"],
+.taktvoll-date-main-row > input[type="datetime-local"]{
+  min-width:0;
+  width:100%;
+}
+.taktvoll-date-manual-toggle{
+  width:auto !important;
+  min-height:44px;
+  white-space:nowrap;
+  padding-left:10px;
+  padding-right:10px;
+}
+.taktvoll-date-manual-panel{
+  margin-top:7px;
+  padding:8px;
+  border:1px solid #e3e3e7;
+  border-radius:12px;
+  background:#f8f8f9;
+}
+.taktvoll-date-manual-panel[hidden]{
+  display:none !important;
+}
+.taktvoll-date-manual-actions{
+  display:grid;
+  grid-template-columns:1fr 48px;
+  gap:7px;
+  margin-top:7px;
+}
+.taktvoll-date-manual-actions button{
+  min-height:42px;
+}
+.taktvoll-date-confirm{
+  font-size:18px;
+  padding:0 !important;
+}
+@media(max-width:390px){
+  .taktvoll-date-main-row{
+    grid-template-columns:minmax(0,1fr);
+  }
+  .taktvoll-date-manual-toggle{
+    width:100% !important;
+  }
+}
+
+
+/* V0.26.39 – Ergänzungsfach: bestehende Schüler:innen als Checkbox-Liste */
+.supplementary-member-choice-list{
+  max-height:260px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  margin-top:7px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.supplementary-student-check-row{
+  width:100%;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr);
+  gap:9px;
+  align-items:center;
+  padding:10px;
+  border:1px solid #e4e4e8;
+  border-radius:12px;
+  background:#fff;
+  cursor:pointer;
+}
+.supplementary-student-check-row input{
+  width:20px;
+  height:20px;
+  margin:0;
+}
+.supplementary-student-check-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.supplementary-student-check-copy strong{
+  line-height:1.2;
+}
+.supplementary-student-check-copy small{
+  color:#777780;
+  line-height:1.25;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5430,7 +5572,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.37 – Anwesenheit scrollbar mit fixem Speichern + externe Ergänzungsfach-Mitglieder -->
+<!-- Taktvoll V0.26.39 – Ergänzungsfach-Mitglieder als Schüler:innen-Checkboxliste -->
 </head>
 <body>
   <div class="app">
@@ -5644,6 +5786,8 @@ input[type="number"]{
         <button type="button" class="icon-btn dialog-close-btn">✕</button>
       </div>
 
+      <div class="lesson-dialog-scroll">
+
       <section class="card">
         <h3>Letzte Stunde</h3>
         <p id="lastLesson" class="muted"></p>
@@ -5689,6 +5833,8 @@ input[type="number"]{
         <textarea id="homework" rows="3" placeholder="Bleibt optional und erscheint nicht in der Jahresdokumentation"></textarea>
       </section>
 
+      </div>
+
       <button class="primary full" type="submit" value="default">Speichern & nächste Stunde</button>
     </form>
   </dialog>
@@ -5704,6 +5850,8 @@ input[type="number"]{
         </div>
         <button type="button" class="icon-btn dialog-close-btn">✕</button>
       </div>
+
+      <div class="lesson-dialog-scroll">
 
       <section class="card">
         <h3>Letzte Einheit</h3>
@@ -5768,6 +5916,8 @@ input[type="number"]{
           </div>
         </div>
       </section>
+
+      </div>
 
       <button class="primary full" type="submit" value="default">Speichern & nächste Stunde</button>
     </form>
@@ -6746,12 +6896,15 @@ input[type="number"]{
         </div>
         <div id="ensembleMemberAddPanel" class="supplementary-member-add-panel" hidden>
           <div class="segmented" id="ensembleMemberAddMode">
-            <button type="button" class="selected" data-member-mode="existing">Bestehender Schüler</button>
+            <button type="button" class="selected" data-member-mode="existing">Bestehende Schüler:innen</button>
             <button type="button" data-member-mode="external">Neues Mitglied</button>
           </div>
 
           <div id="ensembleExistingMemberFields">
-            <input id="ensembleMemberSearch" type="search" placeholder="Schüler suchen …" autocomplete="off">
+            <input id="ensembleMemberSearch" type="search" placeholder="Schüler:innen suchen …" autocomplete="off">
+            <div class="muted small" style="margin-top:6px">
+              Alle vorhandenen Schüler:innen werden unten angezeigt. Anhaken = zum Ergänzungsfach hinzufügen.
+            </div>
             <div id="ensembleMemberStudentChoices" class="supplementary-member-choice-list"></div>
           </div>
 
@@ -7891,7 +8044,19 @@ function enhanceTaktvollDateInputs(root=document){
 
     const includeTime=nativeInput.type==="datetime-local";
     const wrapper=document.createElement("div");
-    wrapper.className="taktvoll-date-entry";
+    wrapper.className="taktvoll-date-entry compact";
+
+    const mainRow=document.createElement("div");
+    mainRow.className="taktvoll-date-main-row";
+
+    const manualToggle=document.createElement("button");
+    manualToggle.type="button";
+    manualToggle.className="secondary taktvoll-date-manual-toggle";
+    manualToggle.textContent=includeTime?"Datum/Uhrzeit eingeben":"Datum eingeben";
+
+    const manualPanel=document.createElement("div");
+    manualPanel.className="taktvoll-date-manual-panel";
+    manualPanel.hidden=true;
 
     const manual=document.createElement("input");
     manual.type="text";
@@ -7901,16 +8066,29 @@ function enhanceTaktvollDateInputs(root=document){
     manual.placeholder=includeTime?"TT.MM.JJJJ HH:MM":"TT.MM.JJJJ";
     manual.setAttribute("aria-label",includeTime?"Datum und Uhrzeit direkt eingeben":"Datum direkt eingeben");
 
-    const hint=document.createElement("div");
-    hint.className="taktvoll-date-hint";
-    hint.textContent=includeTime
-      ?"Direkte Eingabe: TT.MM.JJJJ HH:MM"
-      :"Direkte Eingabe: TT.MM.JJJJ";
+    const actions=document.createElement("div");
+    actions.className="taktvoll-date-manual-actions";
+
+    const resetBtn=document.createElement("button");
+    resetBtn.type="button";
+    resetBtn.className="secondary taktvoll-date-reset";
+    resetBtn.textContent="Zurücksetzen";
+
+    const okBtn=document.createElement("button");
+    okBtn.type="button";
+    okBtn.className="primary taktvoll-date-confirm";
+    okBtn.textContent="✓";
+
+    actions.appendChild(resetBtn);
+    actions.appendChild(okBtn);
+    manualPanel.appendChild(manual);
+    manualPanel.appendChild(actions);
 
     nativeInput.parentNode.insertBefore(wrapper,nativeInput);
-    wrapper.appendChild(manual);
-    wrapper.appendChild(nativeInput);
-    wrapper.appendChild(hint);
+    mainRow.appendChild(nativeInput);
+    mainRow.appendChild(manualToggle);
+    wrapper.appendChild(mainRow);
+    wrapper.appendChild(manualPanel);
 
     const syncManual=()=>{
       manual.value=formatIsoDateForManual(nativeInput.value,includeTime);
@@ -7926,31 +8104,38 @@ function enhanceTaktvollDateInputs(root=document){
       manual.classList.remove("date-invalid");
       nativeInput.value=parsed;
       nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
+      syncManual();
       return true;
     };
 
     nativeInput.addEventListener("change",syncManual);
     nativeInput.addEventListener("input",syncManual);
 
-    manual.addEventListener("focus",()=>{
-      if(nativeInput.value) syncManual();
+    manualToggle.addEventListener("click",()=>{
+      manualPanel.hidden=!manualPanel.hidden;
+      if(!manualPanel.hidden){
+        syncManual();
+        setTimeout(()=>manual.focus(),0);
+      }
     });
 
-    manual.addEventListener("change",applyManual);
-    manual.addEventListener("blur",()=>{
-      if(!manual.value.trim()){
-        nativeInput.value="";
-        nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
-        manual.classList.remove("date-invalid");
-        return;
+    resetBtn.addEventListener("click",()=>{
+      nativeInput.value="";
+      manual.value="";
+      manual.classList.remove("date-invalid");
+      nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
+    });
+
+    okBtn.addEventListener("click",()=>{
+      if(applyManual()){
+        manualPanel.hidden=true;
       }
-      applyManual();
     });
 
     manual.addEventListener("keydown",e=>{
       if(e.key==="Enter"){
         e.preventDefault();
-        if(applyManual()) manual.blur();
+        if(applyManual()) manualPanel.hidden=true;
       }
     });
 
@@ -11105,39 +11290,76 @@ function renderSupplementaryEditMembers(){
 function renderSupplementaryStudentChoices(){
   const box=$("#ensembleMemberStudentChoices");
   if(!box || !editingSupplementaryDraft) return;
+
   const q=String($("#ensembleMemberSearch")?.value||"").trim().toLocaleLowerCase("de");
-  const selectedIds=new Set((editingSupplementaryDraft.members||[])
-    .filter(m=>m.studentId!=null)
-    .map(m=>String(m.studentId)));
+  const selectedIds=new Set(
+    (editingSupplementaryDraft.members||[])
+      .filter(m=>m.studentId!=null)
+      .map(m=>String(m.studentId))
+  );
 
   const students=[...(state.students||[])]
     .sort(alphaByName)
     .filter(s=>{
       if(!q) return true;
-      return [studentDisplayName(s),s.firstName,s.lastName,s.instrument,state.schools?.[s.school]?.name,s.location]
-        .filter(Boolean).join(" ").toLocaleLowerCase("de").includes(q);
+      return [
+        studentDisplayName(s),
+        s.firstName,
+        s.lastName,
+        s.instrument,
+        state.schools?.[s.school]?.name,
+        s.location
+      ].filter(Boolean).join(" ").toLocaleLowerCase("de").includes(q);
     });
 
   box.innerHTML=students.length ? students.map(s=>{
-    const selected=selectedIds.has(String(s.id));
-    return `<button type="button" class="supplementary-student-choice ${selected?"selected":""}" data-student-id="${s.id}" ${selected?"disabled":""}>
-      <span><strong>${studentDisplayName(s)}</strong><small>${[s.instrument,state.schools?.[s.school]?.name].filter(Boolean).join(" · ")}</small></span>
-      <span>${selected?"✓ Hinzugefügt":"+ Hinzufügen"}</span>
-    </button>`;
-  }).join("") : `<div class="muted small" style="padding:10px 2px">Keine passenden Schüler gefunden.</div>`;
+    const checked=selectedIds.has(String(s.id));
+    const meta=[
+      s.instrument,
+      state.schools?.[s.school]?.name,
+      s.location
+    ].filter(Boolean).join(" · ");
 
-  box.querySelectorAll(".supplementary-student-choice:not([disabled])").forEach(btn=>{
-    btn.addEventListener("click",()=>{
-      const s=state.students.find(x=>String(x.id)===String(btn.dataset.studentId));
+    return `
+      <label class="supplementary-student-check-row">
+        <input type="checkbox"
+               class="supplementary-student-checkbox"
+               data-student-id="${s.id}"
+               ${checked?"checked":""}>
+        <span class="supplementary-student-check-copy">
+          <strong>${studentDisplayName(s)}</strong>
+          ${meta?`<small>${meta}</small>`:""}
+        </span>
+      </label>`;
+  }).join("") : `
+    <div class="muted small" style="padding:10px 2px">
+      Keine passenden Schüler:innen gefunden.
+    </div>`;
+
+  box.querySelectorAll(".supplementary-student-checkbox").forEach(cb=>{
+    cb.addEventListener("change",()=>{
+      const id=cb.dataset.studentId;
+      const s=state.students.find(x=>String(x.id)===String(id));
       if(!s) return;
-      editingSupplementaryDraft.members.push({
-        name:studentDisplayName(s),
-        studentId:s.id,
-        memberType:"student",
-        present:true
-      });
+
+      if(cb.checked){
+        const exists=(editingSupplementaryDraft.members||[])
+          .some(m=>m.studentId!=null && String(m.studentId)===String(s.id));
+
+        if(!exists){
+          editingSupplementaryDraft.members.push({
+            name:studentDisplayName(s),
+            studentId:s.id,
+            memberType:"student",
+            present:true
+          });
+        }
+      }else{
+        editingSupplementaryDraft.members=(editingSupplementaryDraft.members||[])
+          .filter(m=>!(m.studentId!=null && String(m.studentId)===String(s.id)));
+      }
+
       renderSupplementaryEditMembers();
-      renderSupplementaryStudentChoices();
     });
   });
 }
