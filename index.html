@@ -5601,6 +5601,23 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.41 – 4 Anwesenheitsstatus + Ergänzungsfach-Schülerliste */
+#statusGroup,
+#ensembleStatusGroup{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:6px !important;
+}
+#statusGroup button,
+#ensembleStatusGroup button{
+  white-space:normal;
+  line-height:1.15;
+}
+#ensembleMemberStudentChoices{
+  min-height:90px;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5613,7 +5630,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.40 – native Kalenderauswahl + größerer Anwesenheits-Footer -->
+<!-- Taktvoll V0.26.41 – Ergänzungsfach-Schülerliste + Status Nicht erfasst -->
 </head>
 <body>
   <div class="app">
@@ -5840,6 +5857,7 @@ input[type="number"]{
           <button type="button" data-status="held" class="selected">Gehalten</button>
           <button type="button" data-status="not-held">Nicht gehalten</button>
           <button type="button" data-status="moved">Verschoben</button>
+          <button type="button" data-status="unrecorded">Nicht erfasst</button>
         </div>
         <div id="statusExtra"></div>
       </section>
@@ -5905,6 +5923,7 @@ input[type="number"]{
           <button type="button" data-status="held" class="selected">Gehalten</button>
           <button type="button" data-status="not-held">Nicht gehalten</button>
           <button type="button" data-status="moved">Verschoben</button>
+          <button type="button" data-status="unrecorded">Nicht erfasst</button>
         </div>
         <div id="ensembleStatusExtra"></div>
       </section>
@@ -6950,7 +6969,16 @@ input[type="number"]{
           </div>
 
           <div id="ensembleExternalMemberFields" hidden>
-            <input id="ensembleExternalMemberName" placeholder="Vor- und Nachname">
+            <div class="student-name-grid">
+              <div>
+                <label class="small muted">Vorname</label>
+                <input id="ensembleExternalMemberFirstName" placeholder="Vorname" autocomplete="given-name">
+              </div>
+              <div>
+                <label class="small muted">Nachname</label>
+                <input id="ensembleExternalMemberLastName" placeholder="Nachname" autocomplete="family-name">
+              </div>
+            </div>
             <div class="muted small" style="margin-top:6px">
               Dieses Mitglied gehört nur zu diesem Ergänzungsfach und wird nicht in der Schülerliste angelegt.
             </div>
@@ -11107,7 +11135,9 @@ function openSupplementaryEditor(id=null){
   renderSupplementaryEditMembers();
   $("#ensembleMemberAddPanel").hidden=true;
   $("#ensembleMemberSearch").value="";
-  $("#ensembleExternalMemberName").value="";
+  $("#ensembleExternalMemberFirstName").value="";
+  $("#ensembleExternalMemberLastName").value="";
+  renderSupplementaryStudentChoices();
   updateSupplementaryTypeHint();
 
   $("#deleteSupplementaryBtn").style.display=id===null ? "none" : "block";
@@ -11163,22 +11193,32 @@ function renderSupplementaryStudentChoices(){
       .map(m=>String(m.studentId))
   );
 
-  const students=[...(state.students||[])]
-    .sort(alphaByName)
-    .filter(s=>{
-      if(!q) return true;
-      return [
-        studentDisplayName(s),
-        s.firstName,
-        s.lastName,
-        s.instrument,
-        state.schools?.[s.school]?.name,
-        s.location
-      ].filter(Boolean).join(" ").toLocaleLowerCase("de").includes(q);
-    });
+  const allStudents=[...(state.students||[])].sort(alphaByName);
+
+  const students=allStudents.filter(s=>{
+    if(!q) return true;
+
+    const fullName=(typeof studentDisplayName==="function")
+      ? studentDisplayName(s)
+      : (s.name||[s.firstName,s.lastName].filter(Boolean).join(" "));
+
+    return [
+      fullName,
+      s.name,
+      s.firstName,
+      s.lastName,
+      s.instrument,
+      state.schools?.[s.school]?.name,
+      s.location
+    ].filter(Boolean).join(" ").toLocaleLowerCase("de").includes(q);
+  });
 
   box.innerHTML=students.length ? students.map(s=>{
     const checked=selectedIds.has(String(s.id));
+    const fullName=(typeof studentDisplayName==="function")
+      ? studentDisplayName(s)
+      : (s.name||[s.firstName,s.lastName].filter(Boolean).join(" ")||"Schüler:in");
+
     const meta=[
       s.instrument,
       state.schools?.[s.school]?.name,
@@ -11192,13 +11232,13 @@ function renderSupplementaryStudentChoices(){
                data-student-id="${s.id}"
                ${checked?"checked":""}>
         <span class="supplementary-student-check-copy">
-          <strong>${studentDisplayName(s)}</strong>
+          <strong>${fullName}</strong>
           ${meta?`<small>${meta}</small>`:""}
         </span>
       </label>`;
   }).join("") : `
     <div class="muted small" style="padding:10px 2px">
-      Keine passenden Schüler:innen gefunden.
+      ${allStudents.length ? "Keine passenden Schüler:innen gefunden." : "Noch keine Schüler:innen angelegt."}
     </div>`;
 
   box.querySelectorAll(".supplementary-student-checkbox").forEach(cb=>{
@@ -11207,13 +11247,17 @@ function renderSupplementaryStudentChoices(){
       const s=state.students.find(x=>String(x.id)===String(id));
       if(!s) return;
 
+      const fullName=(typeof studentDisplayName==="function")
+        ? studentDisplayName(s)
+        : (s.name||[s.firstName,s.lastName].filter(Boolean).join(" ")||"Schüler:in");
+
       if(cb.checked){
         const exists=(editingSupplementaryDraft.members||[])
           .some(m=>m.studentId!=null && String(m.studentId)===String(s.id));
 
         if(!exists){
           editingSupplementaryDraft.members.push({
-            name:studentDisplayName(s),
+            name:fullName,
             studentId:s.id,
             memberType:"student",
             present:true
@@ -11240,7 +11284,7 @@ function setSupplementaryMemberAddMode(mode){
     renderSupplementaryStudentChoices();
     setTimeout(()=>$("#ensembleMemberSearch")?.focus(),0);
   }else{
-    setTimeout(()=>$("#ensembleExternalMemberName")?.focus(),0);
+    setTimeout(()=>$("#ensembleExternalMemberFirstName")?.focus(),0);
   }
 }
 
@@ -11699,21 +11743,24 @@ $("#lessonForm").onsubmit=(e)=>{
     (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate
   ));
 
-  state.logs.push({
-    kind:"student",
-    student:s.name,
-    studentId:s.id,
-    school:s.school,
-    status,
-    content,
-    reason:$("#reason")?.value||"",
-    movedDate:$("#movedDate")?.value||"",
-    homework:$("#homework").value.trim(),
-    lessonDate:state.selectedAttendanceDate,
-    date:state.selectedAttendanceDate+"T12:00:00"
-  });
+  if(status!=="unrecorded"){
+    state.logs.push({
+      kind:"student",
+      student:s.name,
+      studentId:s.id,
+      school:s.school,
+      status,
+      content,
+      reason:$("#reason")?.value||"",
+      movedDate:$("#movedDate")?.value||"",
+      homework:$("#homework").value.trim(),
+      lessonDate:state.selectedAttendanceDate,
+      date:state.selectedAttendanceDate+"T12:00:00"
+    });
 
-  if(content) s.last=content;
+    if(content) s.last=content;
+  }
+
   saveState();
 
   const finished={...current};
@@ -12960,18 +13007,27 @@ $("#ensembleMemberSearch").addEventListener("input",renderSupplementaryStudentCh
 
 $("#saveExternalMemberBtn").addEventListener("click",()=>{
   if(!editingSupplementaryDraft) return;
-  const name=$("#ensembleExternalMemberName").value.trim();
-  if(!name){
-    alert("Bitte einen Namen für das neue Mitglied eingeben.");
+
+  const firstName=$("#ensembleExternalMemberFirstName").value.trim();
+  const lastName=$("#ensembleExternalMemberLastName").value.trim();
+  const name=[firstName,lastName].filter(Boolean).join(" ");
+
+  if(!firstName || !lastName){
+    alert("Bitte Vorname und Nachname des neuen Mitglieds eingeben.");
     return;
   }
+
   editingSupplementaryDraft.members.push({
     name,
+    firstName,
+    lastName,
     studentId:null,
     memberType:"external",
     present:true
   });
-  $("#ensembleExternalMemberName").value="";
+
+  $("#ensembleExternalMemberFirstName").value="";
+  $("#ensembleExternalMemberLastName").value="";
   renderSupplementaryEditMembers();
 });
 
@@ -13081,13 +13137,16 @@ $("#ensembleForm").addEventListener("submit",(e)=>{
   }
 
   state.logs=state.logs.filter(l=>!(
-    l.kind==="supplementary" && String(l.studentId)===String(subject.id) &&
-    (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate &&
-    (!!l.isBlock===!!log.isBlock)
+    l.kind==="supplementary" &&
+    String(l.studentId)===String(subject.id) &&
+    (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate
   ));
-  state.logs.push(log);
 
-  if(content) subject.last=content;
+  if(status!=="unrecorded"){
+    state.logs.push(log);
+    if(content) subject.last=content;
+  }
+
   saveState();
 
   const next=nextDayItem(finished.school,finished.id,"supplementary");
