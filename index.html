@@ -4737,6 +4737,7 @@ textarea{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
+<!-- Taktvoll V0.26.24 – Stabilitätsfix Schüler/Ergänzungsfächer -->
 </head>
 <body>
   <div class="app">
@@ -7085,6 +7086,9 @@ function goBackInTaktvoll(){
 
 function navigateToTab(tab,options={}){
   if(tab!==state.tab) rememberCurrentView();
+
+  clearTimeout(window.__taktvollAudioSectionSearchTimer);
+
   state.tab=tab;
 
   if(tab==="today" && options.today===true){
@@ -7104,11 +7108,29 @@ function hydrateTaktvollIcons(){
 }
 
 function render(){
-  $("#page-title").textContent = titleMap[state.tab];
-  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("active", b.dataset.tab===state.tab));
-  const views = {today:renderToday,students:renderStudents,library:renderLibrary,calendar:renderCalendarPage,docs:renderDocs};
-  $("#content").innerHTML = views[state.tab]();
-  bindViewEvents();
+  const title=$("#page-title");
+  const content=$("#content");
+  const views={today:renderToday,students:renderStudents,library:renderLibrary,calendar:renderCalendarPage,docs:renderDocs};
+  const view=views[state.tab];
+
+  if(title) title.textContent=titleMap[state.tab]||"Taktvoll";
+  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.tab));
+
+  if(!content || typeof view!=="function") return;
+
+  try{
+    const markup=view();
+    content.innerHTML=markup;
+    bindViewEvents();
+  }catch(err){
+    console.error("Taktvoll Renderfehler:",state.tab,err);
+    content.innerHTML=`
+      <div class="card">
+        <div class="eyebrow">FEHLERBEHEBUNG</div>
+        <h3>Diese Ansicht konnte nicht geladen werden.</h3>
+        <p class="muted small">Bitte die Seite einmal neu laden. Der vorherige Tab wird aus Sicherheitsgründen nicht mehr fälschlich angezeigt.</p>
+      </div>`;
+  }
 }
 
 
@@ -9083,7 +9105,6 @@ function renderStudentOverviewSearchDropdown(){
         state.studentOverviewOpenSections[`${schoolId}:subjects`]=true;
       }
 
-      saveState();
       render();
 
       requestAnimationFrame(()=>{
@@ -9191,7 +9212,7 @@ function renderStudents(){
                 </div>
                 <div class="school-section-filter-results">
                 ${(q?matchingSubjects:subjects).length?(q?matchingSubjects:subjects).map(e=>{
-                  const budget=e.type==="irregular"?irregularSubjectBudget(e):null;
+                  const budget=e.type==="irregular"?irregularBudget(e):null;
                   return `<div class="list-row supplementary-overview-row">
                     <div class="supplementary-overview-copy">
                       <div class="bold">${e.name}</div>
@@ -10343,7 +10364,6 @@ $("#lessonForm").onsubmit=(e)=>{
 
 function bindViewEvents(){
 
-  document.addEventListener("click",window.__taktvollStudentSearchOutsideHandler||(()=>{}));
   if(window.__taktvollStudentSearchOutsideHandler){
     document.removeEventListener("click",window.__taktvollStudentSearchOutsideHandler);
   }
@@ -10711,7 +10731,6 @@ function bindViewEvents(){
 
   $("#studentOverviewSearch")?.addEventListener("input",e=>{
     state.studentOverviewSearch=e.target.value;
-    saveState();
     renderStudentOverviewSearchDropdown();
   });
 
@@ -10721,13 +10740,13 @@ function bindViewEvents(){
 
   $("#clearStudentOverviewSearch")?.addEventListener("click",()=>{
     state.studentOverviewSearch="";
-    saveState();
     render();
   });
   document.querySelectorAll("[data-section-toggle]").forEach(btn=>btn.addEventListener("click",()=>{
     const key=btn.dataset.sectionToggle;
+    state.studentOverviewOpenSections=state.studentOverviewOpenSections||{};
     state.studentOverviewOpenSections[key]=!state.studentOverviewOpenSections[key];
-    saveState();render();
+    render();
   }));
 
   document.querySelectorAll(".school-section-search-input").forEach(input=>{
