@@ -5469,6 +5469,219 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.36 – Anwesenheit als echte Vollbild-Unterrichtsseite */
+html.lesson-page-open,
+body.lesson-page-open{
+  overflow:hidden !important;
+  overscroll-behavior:none !important;
+  height:100% !important;
+  touch-action:none;
+}
+
+/* Dialog deckt die komplette App ab. */
+#lessonDialog,
+#ensembleDialog{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  max-width:none !important;
+  height:100dvh !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  overflow:hidden !important;
+  background:#f7f7f8 !important;
+}
+#lessonDialog::backdrop,
+#ensembleDialog::backdrop{
+  background:#f7f7f8 !important;
+  opacity:1 !important;
+}
+#lessonDialog[open],
+#ensembleDialog[open]{
+  display:block !important;
+}
+
+/* Die Unterrichtsmaske selbst ist eine eigene Seite. */
+#lessonDialog > form.sheet,
+#ensembleDialog > form.sheet{
+  position:absolute !important;
+  inset:0 !important;
+  width:100% !important;
+  max-width:none !important;
+  height:100% !important;
+  max-height:none !important;
+  margin:0 !important;
+  padding:
+    max(8px,env(safe-area-inset-top))
+    14px
+    max(10px,env(safe-area-inset-bottom)) !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:6px;
+  background:#f7f7f8 !important;
+  touch-action:manipulation;
+}
+
+/* Auf der Vollbildseite ist kein Sheet-Henkel nötig. */
+#lessonDialog .sheet-handle,
+#ensembleDialog .sheet-handle{
+  display:none !important;
+}
+
+#lessonDialog .sheet-head,
+#ensembleDialog .sheet-head{
+  flex:0 0 auto !important;
+  min-height:48px;
+  margin:0 0 2px !important;
+  padding:0 !important;
+}
+
+/* Alle Karten kompakt genug, damit die Maske ohne Seitenscroll auskommt. */
+#lessonDialog > form.sheet > section.card,
+#ensembleDialog > form.sheet > section.card{
+  flex:0 0 auto !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:8px 10px !important;
+  overflow:hidden !important;
+}
+#lessonDialog .card h3,
+#ensembleDialog .card h3{
+  margin:0 0 5px !important;
+  font-size:15px;
+}
+#lessonDialog .muted,
+#ensembleDialog .muted{
+  line-height:1.25;
+}
+#lessonDialog #lastLesson{
+  margin:0;
+  max-height:42px;
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+}
+
+/* Status kompakt halten. */
+#lessonDialog #statusGroup,
+#ensembleDialog #ensembleStatusGroup{
+  min-height:36px;
+}
+#lessonDialog #statusGroup button,
+#ensembleDialog #ensembleStatusGroup button{
+  min-height:36px;
+  padding:6px 7px;
+  font-size:12px;
+}
+#lessonDialog #statusExtra,
+#ensembleDialog #ensembleStatusExtra{
+  flex:0 0 auto;
+}
+
+/* Nur Textfelder dürfen in sich scrollen. */
+#lessonDialog textarea,
+#ensembleDialog textarea{
+  touch-action:pan-y !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  -webkit-overflow-scrolling:touch !important;
+  resize:none !important;
+}
+#lessonContent{
+  height:92px !important;
+  min-height:92px !important;
+  max-height:92px !important;
+}
+#homework{
+  height:62px !important;
+  min-height:62px !important;
+  max-height:62px !important;
+}
+#ensembleContent{
+  height:84px !important;
+  min-height:84px !important;
+  max-height:84px !important;
+}
+
+/* Unterrichtsstoff-Karte darf Restplatz bei größeren Displays nutzen,
+   ohne dass die Seite selbst scrollt. */
+#lessonDialog > form.sheet > section.card:has(#lessonContent){
+  flex:1 1 auto !important;
+  min-height:112px !important;
+  display:flex !important;
+  flex-direction:column;
+}
+#lessonDialog > form.sheet > section.card:has(#lessonContent) #lessonContent{
+  flex:1 1 auto !important;
+  height:auto !important;
+  min-height:72px !important;
+  max-height:150px !important;
+}
+
+/* Speichern ist immer unten sichtbar. */
+#lessonDialog > form.sheet > button.primary.full,
+#ensembleDialog > form.sheet > button.primary.full{
+  flex:0 0 auto !important;
+  margin-top:auto !important;
+  min-height:46px;
+  position:relative;
+  z-index:10;
+}
+
+/* Ergänzungsfach: Mitgliederliste bekommt bei Bedarf die einzige zusätzliche
+   innere Scrollfläche, damit der Hintergrund niemals bewegt wird. */
+#ensembleDialog #ensembleMembers{
+  max-height:104px;
+  overflow-y:auto !important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  touch-action:pan-y !important;
+}
+
+/* Kleine iPhones: noch kompakter, weiterhin ohne Seiten-/Hintergrundscroll. */
+@media(max-height:700px){
+  #lessonDialog > form.sheet,
+  #ensembleDialog > form.sheet{
+    gap:4px;
+    padding:
+      max(5px,env(safe-area-inset-top))
+      10px
+      max(7px,env(safe-area-inset-bottom)) !important;
+  }
+  #lessonDialog > form.sheet > section.card,
+  #ensembleDialog > form.sheet > section.card{
+    padding:6px 8px !important;
+  }
+  #lessonDialog .sheet-head,
+  #ensembleDialog .sheet-head{
+    min-height:42px;
+  }
+  #lessonContent{
+    min-height:62px !important;
+  }
+  #homework{
+    height:52px !important;
+    min-height:52px !important;
+    max-height:52px !important;
+  }
+  #ensembleContent{
+    height:64px !important;
+    min-height:64px !important;
+    max-height:64px !important;
+  }
+  #ensembleDialog #ensembleMembers{
+    max-height:82px;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5481,7 +5694,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.35 – Anwesenheitsdialog ohne Gesamtscroll -->
+<!-- Taktvoll V0.26.36 – Anwesenheit als gesperrte Vollbild-Unterrichtsseite -->
 </head>
 <body>
   <div class="app">
@@ -11534,6 +11747,28 @@ function selectStatus(status){
   }
 }
 
+
+function lockTaktvollLessonPage(){
+  document.documentElement.classList.add("lesson-page-open");
+  document.body.classList.add("lesson-page-open");
+}
+
+function unlockTaktvollLessonPage(){
+  document.documentElement.classList.remove("lesson-page-open");
+  document.body.classList.remove("lesson-page-open");
+}
+
+function openLessonPageDialog(dialog){
+  if(!dialog) return;
+  lockTaktvollLessonPage();
+  if(!dialog.open) dialog.showModal();
+}
+
+function closeLessonPageDialog(dialog){
+  if(dialog?.open) dialog.close();
+  unlockTaktvollLessonPage();
+}
+
 function openLesson(id){
   const s=state.students.find(x=>String(x.id)===String(id));
   if(!s) return;
@@ -11557,8 +11792,23 @@ function openLesson(id){
   $("#homework").value="";
 
   selectStatus("held");
-  $("#lessonDialog").showModal();
+  openLessonPageDialog($("#lessonDialog"));
 }
+
+
+["lessonDialog","ensembleDialog"].forEach(id=>{
+  const dlg=document.getElementById(id);
+  dlg?.addEventListener("close",()=>{
+    if(!$("#lessonDialog")?.open && !$("#ensembleDialog")?.open){
+      unlockTaktvollLessonPage();
+    }
+  });
+  dlg?.addEventListener("cancel",e=>{
+    e.preventDefault();
+    closeLessonPageDialog(dlg);
+    state.currentLesson=null;
+  });
+});
 
 /* Status-Tasten der Stundeneintragung sind statisch und werden einmal verbunden. */
 document.querySelectorAll("#statusGroup button").forEach(btn=>{
@@ -11604,6 +11854,7 @@ $("#lessonForm").onsubmit=(e)=>{
   const next=nextDayItem(finished.school,finished.id,"student");
 
   state.currentLesson=null;
+  closeLessonPageDialog($("#lessonDialog"));
 
   setTimeout(()=>{
     render();
@@ -11627,7 +11878,11 @@ function bindViewEvents(){
 
   document.querySelectorAll(".dialog-close-btn").forEach(btn=>btn.addEventListener("click",()=>{
     const dlg=btn.closest("dialog");
-    if(dlg && dlg.open) dlg.close();
+    if(dlg?.id==="lessonDialog" || dlg?.id==="ensembleDialog"){
+      closeLessonPageDialog(dlg);
+    }else if(dlg && dlg.open){
+      dlg.close();
+    }
     if(dlg?.id==="studentEditDialog") editingStudentId=null;
     if(dlg?.id==="playlistDialog"){
       pendingPlaylistAudioFiles=[];
@@ -12173,7 +12428,7 @@ function openSupplementaryLesson(id){
   selectEnsembleStatus("held");
   renderSupplementaryMembers(e);
   configureIrregularBlockUI(e);
-  $("#ensembleDialog").showModal();
+  openLessonPageDialog($("#ensembleDialog"));
 }
 function renderSupplementaryMembers(subject){
   const box=$("#ensembleMembers");
