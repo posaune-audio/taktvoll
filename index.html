@@ -5618,6 +5618,21 @@ input[type="number"]{
   min-height:90px;
 }
 
+
+/* V0.26.43 – vier klare Anwesenheitsstatus + Scrollreset bei nächster Stunde */
+#statusGroup,
+#ensembleStatusGroup{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:7px !important;
+}
+#statusGroup button,
+#ensembleStatusGroup button{
+  min-height:42px;
+  white-space:normal;
+  line-height:1.15;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5630,7 +5645,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.41 – Ergänzungsfach-Schülerliste + Status Nicht erfasst -->
+<!-- Taktvoll V0.26.43 – Status Nicht erfasst + nächste Stunde startet oben -->
 </head>
 <body>
   <div class="app">
@@ -8704,13 +8719,14 @@ function renderToday(){
           badge=`${status.weekly} Min Soll`;
           badgeClass="status-not-held";
         }
-      }else if(saved){
+      }else if(saved && saved.status!=="unrecorded"){
         badge=saved.status==="held"?"✓ Gehalten":saved.status==="moved"?"↔ Verschoben":
           saved.reason?.includes("Schulfrei")?"🔴 Schulfrei":"○ Nicht gehalten";
         if(saved.status==="not-held") badgeClass="status-not-held";
       }
 
-      const documented=saved || (item.type==="supplementary" && item.supplementaryType==="irregular" &&
+      const documented=(saved && saved.status!=="unrecorded") ||
+        (item.type==="supplementary" && item.supplementaryType==="irregular" &&
         irregularStatusForDate(supplementaryById(item.id)).credited>0);
 
       return `
@@ -11694,6 +11710,26 @@ function selectStatus(status){
   }
 }
 
+
+function resetLessonScrollPosition(dialogId){
+  requestAnimationFrame(()=>{
+    const dialog=document.getElementById(dialogId);
+    if(!dialog) return;
+
+    const scrollArea=dialog.querySelector(".lesson-dialog-scroll");
+    if(scrollArea){
+      scrollArea.scrollTop=0;
+      try{scrollArea.scrollTo({top:0,left:0,behavior:"auto"});}catch(_){}
+    }
+
+    /* Fallback for older/alternative dialog layouts. */
+    const sheet=dialog.querySelector(".sheet");
+    if(sheet && sheet!==scrollArea){
+      sheet.scrollTop=0;
+    }
+  });
+}
+
 function openLesson(id){
   const s=state.students.find(x=>String(x.id)===String(id));
   if(!s) return;
@@ -11718,6 +11754,7 @@ function openLesson(id){
 
   selectStatus("held");
   $("#lessonDialog").showModal();
+  resetLessonScrollPosition("lessonDialog");
 }
 
 /* Status-Tasten der Stundeneintragung sind statisch und werden einmal verbunden. */
@@ -11736,20 +11773,52 @@ $("#lessonForm").onsubmit=(e)=>{
   const status=e.currentTarget.dataset.status||"held";
   const content=$("#lessonContent").value.trim();
 
-  /* Direkten Eintrag desselben Schülers am selben Datum ersetzen statt duplizieren. */
-  state.logs=state.logs.filter(l=>!(
+  const existingLog=state.logs.find(l=>
     l.kind==="student" &&
     String(l.studentId)===String(s.id) &&
     (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate
-  ));
+  );
 
-  if(status!=="unrecorded"){
+  if(status==="unrecorded"){
+    /* „Nicht erfasst“ löscht niemals einen Anwesenheitsdatensatz.
+       Ein vorhandener Datensatz bleibt erhalten und wird lediglich neutral markiert. */
+    if(existingLog){
+      existingLog.status="unrecorded";
+      existingLog.attendanceState="unrecorded";
+      existingLog.updatedAt=new Date().toISOString();
+    }else{
+      state.logs.push({
+        kind:"student",
+        student:s.name,
+        studentId:s.id,
+        school:s.school,
+        status:"unrecorded",
+        attendanceState:"unrecorded",
+        content:"",
+        reason:"",
+        movedDate:"",
+        homework:"",
+        lessonDate:state.selectedAttendanceDate,
+        date:state.selectedAttendanceDate+"T12:00:00",
+        createdAt:new Date().toISOString()
+      });
+    }
+  }else{
+    /* Bei einer echten neuen Anwesenheit wird derselbe Tagesdatensatz ersetzt,
+       damit weiterhin nur ein aktueller Anwesenheitsstatus pro Tag existiert. */
+    state.logs=state.logs.filter(l=>!(
+      l.kind==="student" &&
+      String(l.studentId)===String(s.id) &&
+      (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate
+    ));
+
     state.logs.push({
       kind:"student",
       student:s.name,
       studentId:s.id,
       school:s.school,
       status,
+      attendanceState:"recorded",
       content,
       reason:$("#reason")?.value||"",
       movedDate:$("#movedDate")?.value||"",
@@ -11771,6 +11840,10 @@ $("#lessonForm").onsubmit=(e)=>{
   setTimeout(()=>{
     render();
     openDayItem(next);
+    requestAnimationFrame(()=>{
+      resetLessonScrollPosition("lessonDialog");
+      resetLessonScrollPosition("ensembleDialog");
+    });
   },120);
 };
 
@@ -12337,6 +12410,7 @@ function openSupplementaryLesson(id){
   renderSupplementaryMembers(e);
   configureIrregularBlockUI(e);
   $("#ensembleDialog").showModal();
+  resetLessonScrollPosition("ensembleDialog");
 }
 function renderSupplementaryMembers(subject){
   const box=$("#ensembleMembers");
@@ -13136,13 +13210,40 @@ $("#ensembleForm").addEventListener("submit",(e)=>{
     log.blockMinutes=minutes;
   }
 
-  state.logs=state.logs.filter(l=>!(
+  const existingSupplementaryLog=state.logs.find(l=>
     l.kind==="supplementary" &&
     String(l.studentId)===String(subject.id) &&
     (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate
-  ));
+  );
 
-  if(status!=="unrecorded"){
+  if(status==="unrecorded"){
+    /* Auch beim Ergänzungsfach wird nichts gelöscht. */
+    if(existingSupplementaryLog){
+      existingSupplementaryLog.status="unrecorded";
+      existingSupplementaryLog.attendanceState="unrecorded";
+      existingSupplementaryLog.updatedAt=new Date().toISOString();
+    }else{
+      state.logs.push({
+        ...log,
+        status:"unrecorded",
+        attendanceState:"unrecorded",
+        content:"",
+        reason:"",
+        movedDate:"",
+        attendance:[],
+        isBlock:false,
+        blockMinutes:0,
+        createdAt:new Date().toISOString()
+      });
+    }
+  }else{
+    state.logs=state.logs.filter(l=>!(
+      l.kind==="supplementary" &&
+      String(l.studentId)===String(subject.id) &&
+      (l.lessonDate||String(l.date||"").slice(0,10))===state.selectedAttendanceDate
+    ));
+
+    log.attendanceState="recorded";
     state.logs.push(log);
     if(content) subject.last=content;
   }
@@ -13151,7 +13252,14 @@ $("#ensembleForm").addEventListener("submit",(e)=>{
 
   const next=nextDayItem(finished.school,finished.id,"supplementary");
   state.currentLesson=null;
-  setTimeout(()=>{render();openDayItem(next);},120);
+  setTimeout(()=>{
+    render();
+    openDayItem(next);
+    requestAnimationFrame(()=>{
+      resetLessonScrollPosition("lessonDialog");
+      resetLessonScrollPosition("ensembleDialog");
+    });
+  },120);
 });
 
 
