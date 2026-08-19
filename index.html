@@ -4881,6 +4881,77 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.29 – Einheit-hinzufügen-Dialog: nur die Schülerliste scrollt */
+#plannerItemDialog{
+  overflow:hidden !important;
+  padding:0;
+}
+#plannerItemDialog[open]{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+#plannerItemDialog > .sheet{
+  width:min(100%,680px);
+  max-height:min(88dvh,760px);
+  overflow:hidden !important;
+  display:flex;
+  flex-direction:column;
+}
+#plannerItemDialog .sheet-head{
+  flex:0 0 auto;
+}
+#plannerItemDialog > .sheet > section.card{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+#plannerEntityFields{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+#plannerEntityFields > label,
+#plannerEntityFields > .planner-entity-search,
+#plannerEntityFields > .planner-assignment-legend{
+  flex:0 0 auto;
+}
+#plannerEntityList{
+  flex:1 1 auto;
+  min-height:110px;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+#plannerCustomFields{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+#plannerAddItemConfirmBtn{
+  flex:0 0 auto;
+  margin-top:10px;
+}
+
+/* Auf kleinen iPhones bleibt Kopf + Hinzufügen-Button sichtbar. */
+@media(max-height:700px){
+  #plannerItemDialog > .sheet{
+    max-height:94dvh;
+  }
+  #plannerEntityList{
+    min-height:80px;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4893,7 +4964,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.28 – Vor-/Nachname und Stundenplan-Suche -->
+<!-- Taktvoll V0.26.29 – Stundenplan Einheit-Dialog mit fixer Kopf-/Fußzeile -->
 </head>
 <body>
   <div class="app">
