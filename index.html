@@ -5715,6 +5715,48 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.49 – Stundenplan als iPhone-Hintergrundbild */
+.wallpaper-export-results{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.wallpaper-export-item{
+  overflow:hidden;
+  border:1px solid #e1e1e5;
+  border-radius:16px;
+  background:#fff;
+}
+.wallpaper-export-item img{
+  display:block;
+  width:100%;
+  max-height:420px;
+  object-fit:cover;
+  object-position:top;
+  background:#f7f7f8;
+}
+.wallpaper-export-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px;
+}
+.wallpaper-export-actions > div{
+  min-width:0;
+}
+.wallpaper-export-actions a{
+  flex:0 0 auto;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:0 13px;
+  border-radius:12px;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5727,7 +5769,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.48 – Verschiebung Tagesauswahl + Plusstunden-Suche -->
+<!-- Taktvoll V0.26.49 – Stundenplan als iPhone-Hintergrundbild -->
 </head>
 <body>
   <div class="app">
@@ -6173,6 +6215,46 @@ input[type="number"]{
 
       <input type="hidden" id="timetableExportMode" value="pdf">
       <button class="primary full" type="submit" id="timetableExportSubmitBtn">Stundenplan – PDF erstellen</button>
+    </form>
+  </dialog>
+
+  <dialog id="timetableWallpaperDialog">
+    <form method="dialog" class="sheet" id="timetableWallpaperForm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">STUNDENPLAN</div>
+          <h2>iPhone-Hintergrundbilder</h2>
+        </div>
+        <button type="button" class="icon-btn dialog-close-btn">✕</button>
+      </div>
+
+      <section class="card">
+        <label class="small muted">Musikschule</label>
+        <select id="timetableWallpaperSchool">
+          <option value="all">Alle Musikschulen</option>
+        </select>
+
+        <div style="height:12px"></div>
+
+        <label class="small muted">Ausgabe</label>
+        <select id="timetableWallpaperDay">
+          <option value="all">Alle Unterrichtstage</option>
+          <option value="Montag">Montag</option>
+          <option value="Dienstag">Dienstag</option>
+          <option value="Mittwoch">Mittwoch</option>
+          <option value="Donnerstag">Donnerstag</option>
+          <option value="Freitag">Freitag</option>
+          <option value="Samstag">Samstag</option>
+          <option value="Sonntag">Sonntag</option>
+        </select>
+
+        <div class="muted small" style="margin-top:9px">
+          Pro Tag wird eine eigene PNG-Datei im Hochformat erzeugt. Oben bleibt bewusst Platz für die Uhr des iPhone-Sperrbildschirms.
+        </div>
+      </section>
+
+      <button class="primary full" type="submit">Hintergrundbilder erstellen</button>
     </form>
   </dialog>
 
@@ -11304,6 +11386,8 @@ function renderDocs(){
       </p>
       <button class="primary full" id="timetablePdfExportBtn">📄 Stundenplan – PDF erstellen</button>
       <button class="secondary full" id="timetableExcelExportBtn" style="margin-top:10px">📊 Stundenplan – Excel erstellen</button>
+      <button class="secondary full" id="timetableWallpaperExportBtn" style="margin-top:10px">📱 Stundenplan – iPhone-Hintergrundbilder erstellen</button>
+      <div id="generatedWallpaperPanel" style="display:none;margin-top:14px"></div>
     </div>`;
 }
 
@@ -12243,6 +12327,7 @@ function bindViewEvents(){
   $("#excelExportBtn")?.addEventListener("click",()=>openPdfExportDialog("excel"));
   $("#timetablePdfExportBtn")?.addEventListener("click",()=>openTimetableExportDialog("pdf"));
   $("#timetableExcelExportBtn")?.addEventListener("click",()=>openTimetableExportDialog("excel"));
+  $("#timetableWallpaperExportBtn")?.addEventListener("click",openTimetableWallpaperDialog);
 
   $("#showMaterialsTab")?.addEventListener("click",()=>{state.libraryView="materials";saveState();render();});
   $("#showAudioTab")?.addEventListener("click",()=>{state.libraryView="audio";saveState();render();});
@@ -13092,6 +13177,15 @@ $("#pdfExportForm").addEventListener("submit",(e)=>{
   $("#pdfExportDialog").close();
   if(mode==="excel") exportExcelReportSafe(scope,range,entityFilter);
   else exportPdfReportSafe(scope,range,entityFilter);
+});
+
+
+$("#timetableWallpaperForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  exportTimetableWallpapers(
+    $("#timetableWallpaperSchool").value||"all",
+    $("#timetableWallpaperDay").value||"all"
+  );
 });
 
 $("#timetablePdfForm").addEventListener("submit",async(e)=>{
@@ -14456,6 +14550,207 @@ function openTimetablePdfPreview(blob,filename){
         </div>`;
     }
   }
+}
+
+
+function openTimetableWallpaperDialog(){
+  const sel=$("#timetableWallpaperSchool");
+  sel.innerHTML=`<option value="all">Alle Musikschulen</option>`+
+    Object.entries(state.schools||{})
+      .sort((a,b)=>(a[1]?.name||"").localeCompare(b[1]?.name||"","de",{sensitivity:"base"}))
+      .map(([id,sc])=>`<option value="${id}">${sc.name}</option>`)
+      .join("");
+
+  $("#timetableWallpaperDay").value="all";
+  $("#timetableWallpaperDialog").showModal();
+}
+
+function wrapCanvasText(ctx,text,maxWidth){
+  const words=String(text||"").trim().split(/\s+/).filter(Boolean);
+  if(!words.length) return [""];
+  const lines=[];
+  let current=words[0];
+
+  for(let i=1;i<words.length;i++){
+    const test=current+" "+words[i];
+    if(ctx.measureText(test).width<=maxWidth){
+      current=test;
+    }else{
+      lines.push(current);
+      current=words[i];
+    }
+  }
+  lines.push(current);
+  return lines;
+}
+
+function safeFilenamePart(value){
+  return String(value||"")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-zA-Z0-9_-]+/g,"-")
+    .replace(/^-+|-+$/g,"");
+}
+
+async function createTimetableWallpaperBlob(day,schoolScope="all"){
+  /* Hochauflösendes Portraitformat, das iOS sauber skalieren kann. */
+  const width=1290;
+  const height=2796;
+  const canvas=document.createElement("canvas");
+  canvas.width=width;
+  canvas.height=height;
+  const ctx=canvas.getContext("2d");
+
+  ctx.fillStyle="#f7f7f8";
+  ctx.fillRect(0,0,width,height);
+
+  const rows=timetableRowsForDay(day,schoolScope);
+
+  /* Große freie Safe-Zone für Uhr/Widgets auf dem Sperrbildschirm. */
+  const left=92;
+  const right=92;
+  const contentWidth=width-left-right;
+  const titleY=570;
+
+  ctx.fillStyle="#111113";
+  ctx.textBaseline="alphabetic";
+  ctx.font='900 42px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+  ctx.fillText("TAKTVOLL",left,titleY);
+
+  ctx.font='900 104px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+  ctx.fillText(day,left,titleY+122);
+
+  const schoolLabel=schoolScope==="all"
+    ? "Stundenplan"
+    : (state.schools?.[schoolScope]?.name||"Stundenplan");
+
+  ctx.fillStyle="#777780";
+  ctx.font='500 34px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+  ctx.fillText(schoolLabel,left,titleY+180);
+
+  const lineY=titleY+228;
+  ctx.fillStyle="#d6d6da";
+  ctx.fillRect(left,lineY,contentWidth,2);
+
+  if(!rows.length){
+    ctx.fillStyle="#777780";
+    ctx.font='600 42px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+    ctx.fillText("Keine Einheiten",left,lineY+100);
+  }else{
+    const top=lineY+70;
+    const bottom=height-150;
+    const available=bottom-top;
+
+    /* Größe passt sich der Anzahl der Unterrichtseinheiten an. */
+    const rowGap=Math.max(14,Math.min(42,available/Math.max(rows.length,1)*0.16));
+    const nominalRowH=Math.min(160,Math.max(88,(available-(rows.length-1)*rowGap)/rows.length));
+    const nameFont=Math.max(34,Math.min(54,nominalRowH*0.38));
+    const timeFont=Math.max(30,Math.min(46,nominalRowH*0.32));
+    let y=top;
+
+    rows.forEach((row,index)=>{
+      const time=String(row.start||"");
+      const name=String(row.title||"");
+
+      ctx.fillStyle="#111113";
+      ctx.font=`800 ${timeFont}px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
+      ctx.fillText(time,left,y+timeFont);
+
+      const nameX=left+190;
+      const nameWidth=contentWidth-190;
+      ctx.font=`800 ${nameFont}px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif`;
+      const lines=wrapCanvasText(ctx,name,nameWidth).slice(0,2);
+
+      lines.forEach((line,lineIndex)=>{
+        ctx.fillText(line,nameX,y+nameFont+(lineIndex*(nameFont+7)));
+      });
+
+      const usedH=Math.max(
+        nominalRowH,
+        lines.length*(nameFont+7)+24
+      );
+
+      if(index<rows.length-1){
+        ctx.fillStyle="#ddddE1";
+        ctx.fillRect(nameX,y+usedH-5,nameWidth,2);
+      }
+      y+=usedH+rowGap;
+    });
+  }
+
+  ctx.fillStyle="#aaaab1";
+  ctx.font='500 26px -apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif';
+  ctx.fillText("Taktvoll · Stundenplan",left,height-70);
+
+  return await new Promise((resolve,reject)=>{
+    canvas.toBlob(blob=>{
+      if(blob) resolve(blob);
+      else reject(new Error("PNG konnte nicht erstellt werden."));
+    },"image/png",1);
+  });
+}
+
+async function exportTimetableWallpapers(schoolScope="all",dayMode="all"){
+  const allDays=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  const days=dayMode==="all"
+    ? allDays.filter(day=>timetableRowsForDay(day,schoolScope).length>0)
+    : [dayMode];
+
+  if(!days.length){
+    alert("Für diese Auswahl gibt es keine Einheiten im Stundenplan.");
+    return;
+  }
+
+  const panel=$("#generatedWallpaperPanel");
+  if(panel){
+    panel.style.display="block";
+    panel.innerHTML=`
+      <div class="card" style="margin:0;background:#f4f4f5;box-shadow:none">
+        <div class="eyebrow">HINTERGRUNDBILDER</div>
+        <div class="bold" style="margin-top:5px">Bilder werden erstellt …</div>
+      </div>`;
+  }
+
+  const generated=[];
+
+  for(const day of days){
+    const blob=await createTimetableWallpaperBlob(day,schoolScope);
+    const url=URL.createObjectURL(blob);
+    const schoolLabel=schoolScope==="all"
+      ? "Alle-Musikschulen"
+      : (state.schools?.[schoolScope]?.name||"Musikschule");
+    const filename=`Taktvoll-${safeFilenamePart(day)}-${safeFilenamePart(schoolLabel)}-iPhone.png`;
+    generated.push({day,blob,url,filename});
+  }
+
+  window.__taktvollWallpaperUrls=window.__taktvollWallpaperUrls||[];
+  window.__taktvollWallpaperUrls.forEach(url=>{try{URL.revokeObjectURL(url);}catch(_){}});
+  window.__taktvollWallpaperUrls=generated.map(x=>x.url);
+
+  if(panel){
+    panel.innerHTML=`
+      <div class="wallpaper-export-results">
+        <div class="eyebrow">IPHONE-HINTERGRUNDBILDER</div>
+        <h3 style="margin-top:5px">${generated.length} Bild${generated.length===1?"":"er"} erstellt</h3>
+        <p class="muted small">
+          Öffne ein Bild und sichere es auf dem iPhone. Anschließend kannst du es in Fotos als Sperrbildschirm oder Hintergrund festlegen.
+        </p>
+        ${generated.map(item=>`
+          <div class="wallpaper-export-item">
+            <img src="${item.url}" alt="Stundenplan ${item.day}">
+            <div class="wallpaper-export-actions">
+              <div>
+                <div class="bold">${item.day}</div>
+                <div class="muted small">${item.filename}</div>
+              </div>
+              <a class="primary" href="${item.url}" target="_blank" rel="noopener">Bild öffnen</a>
+            </div>
+          </div>
+        `).join("")}
+      </div>`;
+  }
+
+  $("#timetableWallpaperDialog").close();
 }
 
 async function exportTimetablePdf(schoolScope="all",dayMode="week"){
