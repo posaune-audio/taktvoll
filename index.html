@@ -5560,6 +5560,47 @@ input[type="number"]{
   line-height:1.25;
 }
 
+
+/* V0.26.40 – nur native Kalenderauswahl */
+.taktvoll-date-entry,
+.taktvoll-date-main-row,
+.taktvoll-date-manual-panel,
+.taktvoll-date-manual-toggle,
+.taktvoll-date-manual,
+.taktvoll-date-hint,
+.taktvoll-date-manual-actions{
+  display:contents;
+}
+
+
+/* V0.26.40 – größerer fixer Footer in der Anwesenheit */
+#lessonDialog > form.sheet > button.primary.full,
+#ensembleDialog > form.sheet > button.primary.full{
+  min-height:72px !important;
+  height:72px !important;
+  font-size:18px !important;
+  font-weight:900 !important;
+  padding:0 18px !important;
+  margin:0 -14px -8px !important;
+  width:calc(100% + 28px) !important;
+  border-radius:16px 16px 20px 20px !important;
+  box-shadow:0 -10px 24px rgba(0,0,0,.10) !important;
+  position:relative !important;
+  z-index:40 !important;
+}
+#lessonDialog .lesson-dialog-scroll,
+#ensembleDialog .lesson-dialog-scroll{
+  padding-bottom:18px !important;
+}
+@media(max-height:700px){
+  #lessonDialog > form.sheet > button.primary.full,
+  #ensembleDialog > form.sheet > button.primary.full{
+    min-height:66px !important;
+    height:66px !important;
+    font-size:17px !important;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5572,7 +5613,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.39 – Ergänzungsfach-Mitglieder als Schüler:innen-Checkboxliste -->
+<!-- Taktvoll V0.26.40 – native Kalenderauswahl + größerer Anwesenheits-Footer -->
 </head>
 <body>
   <div class="app">
@@ -7986,181 +8027,6 @@ function loadState(){
 
 
 
-function formatIsoDateForManual(value,includeTime=false){
-  const raw=String(value||"").trim();
-  if(!raw) return "";
-
-  if(includeTime){
-    const m=raw.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-    if(!m) return "";
-    return `${m[3]}.${m[2]}.${m[1]} ${m[4]}:${m[5]}`;
-  }
-
-  const m=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(!m) return "";
-  return `${m[3]}.${m[2]}.${m[1]}`;
-}
-
-function parseManualDateValue(value,includeTime=false){
-  const raw=String(value||"").trim();
-  if(!raw) return "";
-
-  if(includeTime){
-    const m=raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})(?:\s+|,\s*)(\d{1,2}):(\d{2})$/);
-    if(!m) return null;
-
-    const day=Number(m[1]),month=Number(m[2]),year=Number(m[3]);
-    const hour=Number(m[4]),minute=Number(m[5]);
-    const test=new Date(year,month-1,day,hour,minute);
-    if(
-      test.getFullYear()!==year ||
-      test.getMonth()!==month-1 ||
-      test.getDate()!==day ||
-      hour<0 || hour>23 || minute<0 || minute>59
-    ) return null;
-
-    return `${String(year).padStart(4,"0")}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}T${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
-  }
-
-  const m=raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})$/);
-  if(!m) return null;
-
-  const day=Number(m[1]),month=Number(m[2]),year=Number(m[3]);
-  const test=new Date(year,month-1,day);
-  if(test.getFullYear()!==year || test.getMonth()!==month-1 || test.getDate()!==day) return null;
-
-  return `${String(year).padStart(4,"0")}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-}
-
-function enhanceTaktvollDateInputs(root=document){
-  const dateInputs=[
-    ...(root.matches?.('input[type="date"],input[type="datetime-local"]')?[root]:[]),
-    ...root.querySelectorAll?.('input[type="date"],input[type="datetime-local"]')||[]
-  ];
-
-  dateInputs.forEach(nativeInput=>{
-    if(nativeInput.dataset.taktvollDateEnhanced==="1") return;
-    nativeInput.dataset.taktvollDateEnhanced="1";
-
-    const includeTime=nativeInput.type==="datetime-local";
-    const wrapper=document.createElement("div");
-    wrapper.className="taktvoll-date-entry compact";
-
-    const mainRow=document.createElement("div");
-    mainRow.className="taktvoll-date-main-row";
-
-    const manualToggle=document.createElement("button");
-    manualToggle.type="button";
-    manualToggle.className="secondary taktvoll-date-manual-toggle";
-    manualToggle.textContent=includeTime?"Datum/Uhrzeit eingeben":"Datum eingeben";
-
-    const manualPanel=document.createElement("div");
-    manualPanel.className="taktvoll-date-manual-panel";
-    manualPanel.hidden=true;
-
-    const manual=document.createElement("input");
-    manual.type="text";
-    manual.inputMode="numeric";
-    manual.autocomplete="off";
-    manual.className="taktvoll-date-manual";
-    manual.placeholder=includeTime?"TT.MM.JJJJ HH:MM":"TT.MM.JJJJ";
-    manual.setAttribute("aria-label",includeTime?"Datum und Uhrzeit direkt eingeben":"Datum direkt eingeben");
-
-    const actions=document.createElement("div");
-    actions.className="taktvoll-date-manual-actions";
-
-    const resetBtn=document.createElement("button");
-    resetBtn.type="button";
-    resetBtn.className="secondary taktvoll-date-reset";
-    resetBtn.textContent="Zurücksetzen";
-
-    const okBtn=document.createElement("button");
-    okBtn.type="button";
-    okBtn.className="primary taktvoll-date-confirm";
-    okBtn.textContent="✓";
-
-    actions.appendChild(resetBtn);
-    actions.appendChild(okBtn);
-    manualPanel.appendChild(manual);
-    manualPanel.appendChild(actions);
-
-    nativeInput.parentNode.insertBefore(wrapper,nativeInput);
-    mainRow.appendChild(nativeInput);
-    mainRow.appendChild(manualToggle);
-    wrapper.appendChild(mainRow);
-    wrapper.appendChild(manualPanel);
-
-    const syncManual=()=>{
-      manual.value=formatIsoDateForManual(nativeInput.value,includeTime);
-      manual.classList.remove("date-invalid");
-    };
-
-    const applyManual=()=>{
-      const parsed=parseManualDateValue(manual.value,includeTime);
-      if(parsed===null){
-        manual.classList.add("date-invalid");
-        return false;
-      }
-      manual.classList.remove("date-invalid");
-      nativeInput.value=parsed;
-      nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
-      syncManual();
-      return true;
-    };
-
-    nativeInput.addEventListener("change",syncManual);
-    nativeInput.addEventListener("input",syncManual);
-
-    manualToggle.addEventListener("click",()=>{
-      manualPanel.hidden=!manualPanel.hidden;
-      if(!manualPanel.hidden){
-        syncManual();
-        setTimeout(()=>manual.focus(),0);
-      }
-    });
-
-    resetBtn.addEventListener("click",()=>{
-      nativeInput.value="";
-      manual.value="";
-      manual.classList.remove("date-invalid");
-      nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
-    });
-
-    okBtn.addEventListener("click",()=>{
-      if(applyManual()){
-        manualPanel.hidden=true;
-      }
-    });
-
-    manual.addEventListener("keydown",e=>{
-      if(e.key==="Enter"){
-        e.preventDefault();
-        if(applyManual()) manualPanel.hidden=true;
-      }
-    });
-
-    syncManual();
-  });
-}
-
-function syncTaktvollManualDateInputs(){
-  document.querySelectorAll(".taktvoll-date-entry").forEach(wrapper=>{
-    const nativeInput=wrapper.querySelector('input[type="date"],input[type="datetime-local"]');
-    const manual=wrapper.querySelector(".taktvoll-date-manual");
-    if(!nativeInput || !manual) return;
-    manual.value=formatIsoDateForManual(nativeInput.value,nativeInput.type==="datetime-local");
-    manual.classList.remove("date-invalid");
-  });
-}
-
-const taktvollDateObserver=new MutationObserver(mutations=>{
-  mutations.forEach(mutation=>{
-    mutation.addedNodes.forEach(node=>{
-      if(node.nodeType===1) enhanceTaktvollDateInputs(node);
-    });
-  });
-});
-
 function populateLocationSelect(selectEl, schoolId, selectedValue=""){
   const locations=state.schools[schoolId]?.locations||[];
   selectEl.innerHTML = locations.length
@@ -8264,7 +8130,6 @@ function render(){
     const markup=view();
     content.innerHTML=markup;
     bindViewEvents();
-    enhanceTaktvollDateInputs(content);
   }catch(err){
     console.error("Taktvoll Renderfehler:",state.tab,err);
     content.innerHTML=`
@@ -15361,16 +15226,6 @@ async function initTaktvollAuth(){
 }
 
 
-document.addEventListener("click",()=>{
-  requestAnimationFrame(syncTaktvollManualDateInputs);
-},true);
-
-document.addEventListener("focusin",e=>{
-  if(e.target.matches?.('input[type="date"],input[type="datetime-local"],.taktvoll-date-manual')){
-    requestAnimationFrame(syncTaktvollManualDateInputs);
-  }
-});
-
 /* Auth UI */
 document.querySelectorAll("[data-auth-mode]").forEach(btn=>{
   btn.addEventListener("click",()=>updateAuthMode(btn.dataset.authMode));
@@ -15430,9 +15285,6 @@ $("#saveNewPasswordBtn").addEventListener("click",async()=>{
   alert("Dein Passwort wurde geändert.");
 });
 
-
-enhanceTaktvollDateInputs(document);
-taktvollDateObserver.observe(document.body,{childList:true,subtree:true});
 
 loadState();
 if(!state.selectedAttendanceDate) state.selectedAttendanceDate=new Date().toISOString().slice(0,10);
