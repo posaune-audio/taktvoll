@@ -4680,18 +4680,10 @@ textarea{
 }
 
 
-/* V0.26.23 – Suche innerhalb Schüler/Ergänzungsfächer + unabhängige Aufklappbereiche */
-.school-section-list-scrollable{
-  max-height:min(58vh,560px);
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;
-  padding-right:2px;
-}
+/* V0.26.25 – offene Listen ohne internes Scrollfeld */
 .school-section-inner-search{
-  position:sticky;
-  top:0;
-  z-index:4;
+  position:relative;
+  z-index:1;
   display:grid;
   grid-template-columns:auto minmax(0,1fr);
   align-items:center;
@@ -4725,6 +4717,96 @@ textarea{
   padding:10px 4px 4px;
 }
 
+
+.section-toggle-label{
+  flex:0 0 auto;
+  font-size:12px;
+  font-weight:800;
+  color:#6f6f78;
+  white-space:nowrap;
+  margin-left:12px;
+}
+.school-section-toggle{
+  align-items:center;
+}
+
+
+/* V0.26.26 – Vorschläge in den Suchfeldern innerhalb Schüler/Ergänzungsfächer */
+.school-section-inner-search-wrap{
+  position:relative;
+  margin-bottom:9px;
+}
+.school-section-inner-search-wrap .school-section-inner-search{
+  margin-bottom:0;
+}
+.school-section-suggestions{
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 6px);
+  z-index:80;
+  display:none;
+  max-height:320px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  background:#fff;
+  border:1px solid #dddde3;
+  border-radius:14px;
+  box-shadow:0 14px 34px rgba(17,17,19,.14);
+}
+.school-section-suggestions.open{
+  display:block;
+}
+.school-section-suggestion-option{
+  width:100%;
+  border:0;
+  border-bottom:1px solid #eeeeF1;
+  background:#fff;
+  color:#111113;
+  padding:10px 11px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:start;
+  text-align:left;
+}
+.school-section-suggestion-option:last-child{
+  border-bottom:0;
+}
+.school-section-suggestion-option:active{
+  background:#f4f4f6;
+}
+.school-section-suggestion-option > div{
+  min-width:0;
+}
+.school-section-suggestion-option strong{
+  display:block;
+  white-space:normal;
+  line-height:1.2;
+}
+.school-section-suggestion-option small{
+  display:block;
+  margin-top:3px;
+  color:#777780;
+  font-size:12px;
+  line-height:1.3;
+  white-space:normal;
+}
+.school-section-suggestion-option > span{
+  padding:4px 6px;
+  border-radius:999px;
+  background:#f1f1f3;
+  color:#66666f;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.school-section-suggestion-empty{
+  padding:13px;
+  color:#777780;
+  font-size:13px;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4737,7 +4819,7 @@ textarea{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.24 – Stabilitätsfix Schüler/Ergänzungsfächer -->
+<!-- Taktvoll V0.26.26 – Vorschlagssuche in geöffneten Listen -->
 </head>
 <body>
   <div class="app">
@@ -9170,21 +9252,27 @@ function renderStudents(){
         ${schoolOpen?`
           <div class="school-collapsible-content">
             <button type="button" class="school-section-toggle" data-section-toggle="${studentsKey}">
-              <span><strong>Schüler</strong><small>${students.length}</small></span><span>${studentsOpen?"⌄":"›"}</span>
+              <span><strong>Schüler</strong><small>${students.length}</small></span><span class="section-toggle-label">${studentsOpen?"Einklappen":"Ausklappen"}</span>
             </button>
             ${studentsOpen?`
-              <div class="school-section-list school-section-list-scrollable" data-section-list="students">
-                <div class="school-section-inner-search">
-                  <span>⌕</span>
-                  <input type="search"
-                         class="school-section-search-input"
-                         data-section-search="students"
-                         placeholder="Schüler, Instrument oder Standort suchen …"
-                         autocomplete="off">
+              <div class="school-section-list" data-section-list="students">
+                <div class="school-section-inner-search-wrap">
+                  <div class="school-section-inner-search">
+                    <span>⌕</span>
+                    <input type="search"
+                           class="school-section-search-input"
+                           data-section-search="students"
+                           placeholder="Schüler, Instrument oder Standort suchen …"
+                           autocomplete="off">
+                  </div>
+                  <div class="school-section-suggestions" data-section-suggestions="students"></div>
                 </div>
                 <div class="school-section-filter-results">
                 ${(q?matchingStudents:students).length?(q?matchingStudents:students).map(s=>`
-                  <div class="list-row student-overview-row">
+                  <div class="list-row student-overview-row"
+                       data-section-item-id="${s.id}"
+                       data-section-item-name="${String(s.name||"").replace(/"/g,"&quot;")}"
+                       data-section-item-search="${[s.name,s.instrument,s.level,s.location,s.unit].filter(Boolean).join(" ").replace(/"/g,"&quot;")}">
                     <div class="student-overview-copy">
                       <div class="bold">${s.name}</div>
                       <div class="muted small">${s.unit||"E30"} ${s.instrument||""} · ${s.level||""}</div>
@@ -9198,22 +9286,28 @@ function renderStudents(){
               </div>`:""}
 
             <button type="button" class="school-section-toggle" data-section-toggle="${subjectsKey}">
-              <span><strong>Ergänzungsfächer</strong><small>${subjects.length}</small></span><span>${subjectsOpen?"⌄":"›"}</span>
+              <span><strong>Ergänzungsfächer</strong><small>${subjects.length}</small></span><span class="section-toggle-label">${subjectsOpen?"Einklappen":"Ausklappen"}</span>
             </button>
             ${subjectsOpen?`
-              <div class="school-section-list school-section-list-scrollable" data-section-list="subjects">
-                <div class="school-section-inner-search">
-                  <span>⌕</span>
-                  <input type="search"
-                         class="school-section-search-input"
-                         data-section-search="subjects"
-                         placeholder="Ergänzungsfach oder Standort suchen …"
-                         autocomplete="off">
+              <div class="school-section-list" data-section-list="subjects">
+                <div class="school-section-inner-search-wrap">
+                  <div class="school-section-inner-search">
+                    <span>⌕</span>
+                    <input type="search"
+                           class="school-section-search-input"
+                           data-section-search="subjects"
+                           placeholder="Ergänzungsfach oder Standort suchen …"
+                           autocomplete="off">
+                  </div>
+                  <div class="school-section-suggestions" data-section-suggestions="subjects"></div>
                 </div>
                 <div class="school-section-filter-results">
                 ${(q?matchingSubjects:subjects).length?(q?matchingSubjects:subjects).map(e=>{
                   const budget=e.type==="irregular"?irregularBudget(e):null;
-                  return `<div class="list-row supplementary-overview-row">
+                  return `<div class="list-row supplementary-overview-row"
+                               data-section-item-id="${e.id}"
+                               data-section-item-name="${String(e.name||"").replace(/"/g,"&quot;")}"
+                               data-section-item-search="${[e.name,e.location,e.unit,e.type==="irregular"?"unregelmäßig blockbar":"regelmäßig"].filter(Boolean).join(" ").replace(/"/g,"&quot;")}">
                     <div class="supplementary-overview-copy">
                       <div class="bold">${e.name}</div>
                       <div class="muted small">${e.unit||"E30"} · ${e.type==="irregular"?"Unregelmäßig / blockbar":"Regelmäßig"}</div>
@@ -10750,24 +10844,101 @@ function bindViewEvents(){
   }));
 
   document.querySelectorAll(".school-section-search-input").forEach(input=>{
-    input.addEventListener("input",()=>{
+    const renderSectionSuggestions=()=>{
       const list=input.closest(".school-section-list");
-      if(!list) return;
+      const wrap=input.closest(".school-section-inner-search-wrap");
+      if(!list || !wrap) return;
 
+      const kind=input.dataset.sectionSearch;
+      const box=wrap.querySelector(".school-section-suggestions");
       const term=(input.value||"").trim().toLowerCase();
       const rows=[...list.querySelectorAll(".student-overview-row, .supplementary-overview-row")];
-      let visible=0;
 
+      let visible=0;
       rows.forEach(row=>{
-        const show=!term || row.textContent.toLowerCase().includes(term);
+        const searchText=(row.dataset.sectionItemSearch||row.textContent||"").toLowerCase();
+        const show=!term || searchText.includes(term);
         row.hidden=!show;
         if(show) visible++;
       });
 
       const empty=list.querySelector(".section-filter-empty");
       if(empty) empty.hidden=visible>0 || !term;
-    });
+
+      if(!box) return;
+
+      if(!term){
+        box.classList.remove("open");
+        box.innerHTML="";
+        return;
+      }
+
+      const matches=rows
+        .filter(row=>(row.dataset.sectionItemSearch||row.textContent||"").toLowerCase().includes(term))
+        .sort((a,b)=>{
+          const an=(a.dataset.sectionItemName||"").toLowerCase();
+          const bn=(b.dataset.sectionItemName||"").toLowerCase();
+          const as=an.startsWith(term)?0:1;
+          const bs=bn.startsWith(term)?0:1;
+          if(as!==bs) return as-bs;
+          return an.localeCompare(bn,"de",{sensitivity:"base"});
+        })
+        .slice(0,12);
+
+      box.innerHTML=matches.length ? matches.map(row=>{
+        const id=row.dataset.sectionItemId||"";
+        const name=row.dataset.sectionItemName||"";
+        const detail=row.querySelector(".muted.small")?.textContent?.trim()||"";
+        return `
+          <button type="button"
+                  class="school-section-suggestion-option"
+                  data-section-target="${id}">
+            <div>
+              <strong>${name}</strong>
+              ${detail?`<small>${detail}</small>`:""}
+            </div>
+            <span>${kind==="students"?"Schüler":"Ergänzungsfach"}</span>
+          </button>`;
+      }).join("") : `<div class="school-section-suggestion-empty">Keine passenden Vorschläge.</div>`;
+
+      box.classList.add("open");
+
+      box.querySelectorAll(".school-section-suggestion-option").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const targetId=btn.dataset.sectionTarget;
+          const row=rows.find(r=>String(r.dataset.sectionItemId)===String(targetId));
+          if(!row) return;
+
+          input.value=row.dataset.sectionItemName||"";
+          rows.forEach(r=>r.hidden=r!==row);
+
+          box.classList.remove("open");
+          box.innerHTML="";
+
+          const empty=list.querySelector(".section-filter-empty");
+          if(empty) empty.hidden=true;
+
+          row.scrollIntoView({behavior:"smooth",block:"center"});
+          row.classList.add("search-highlight");
+          setTimeout(()=>row.classList.remove("search-highlight"),1400);
+        });
+      });
+    };
+
+    input.addEventListener("input",renderSectionSuggestions);
+    input.addEventListener("focus",renderSectionSuggestions);
   });
+
+
+  if(window.__taktvollSectionSearchOutsideHandler){
+    document.removeEventListener("click",window.__taktvollSectionSearchOutsideHandler);
+  }
+  window.__taktvollSectionSearchOutsideHandler=(e)=>{
+    if(!e.target.closest(".school-section-inner-search-wrap")){
+      document.querySelectorAll(".school-section-suggestions.open").forEach(box=>box.classList.remove("open"));
+    }
+  };
+  document.addEventListener("click",window.__taktvollSectionSearchOutsideHandler);
 
   $("#addSupplementaryBtn")?.addEventListener("click",()=>openSupplementaryEditor(null));
   $("#openTimetablePlannerBtn")?.addEventListener("click",()=>openTimetablePlanner("all"));
