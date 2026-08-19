@@ -5279,6 +5279,196 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.34 – Stundenplan: sauberer Moduswechsel + gezielte Startzeit */
+#plannerEntityFields[hidden],
+#plannerCustomFields[hidden],
+#plannerSpecificStartWrap[hidden]{
+  display:none !important;
+}
+
+#plannerCustomFields:not([hidden]){
+  display:block !important;
+  flex:0 0 auto !important;
+  overflow:visible !important;
+}
+
+.planner-timing-fields{
+  flex:0 0 auto;
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid #ececef;
+}
+.planner-start-mode{
+  margin-top:6px;
+}
+#plannerSpecificStartWrap{
+  margin-top:9px;
+}
+#plannerSpecificStart{
+  width:100%;
+}
+.planner-rename-btn{
+  width:34px;
+  height:34px;
+  border:0;
+  border-radius:10px;
+  background:#efeff2;
+  color:#111;
+  font-size:16px;
+  font-weight:900;
+}
+#plannerItemDialog #plannerEntityFields[hidden]{
+  min-height:0 !important;
+  height:0 !important;
+  overflow:hidden !important;
+}
+#plannerItemDialog #plannerCustomFields:not([hidden]){
+  margin-top:8px !important;
+}
+#plannerItemDialog #plannerTimingFields{
+  margin-top:8px;
+  padding-top:8px;
+}
+
+
+/* V0.26.35 – Anwesenheitsdialog: Dialog selbst fix, nur Textfelder scrollen */
+#lessonDialog{
+  overflow:hidden !important;
+  padding:0 !important;
+}
+#lessonDialog[open]{
+  display:flex !important;
+  align-items:flex-end;
+  justify-content:center;
+}
+#lessonDialog > form.sheet{
+  width:min(100%,680px);
+  height:min(92dvh,820px);
+  max-height:min(92dvh,820px);
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column;
+}
+#lessonDialog .sheet-handle,
+#lessonDialog .sheet-head{
+  flex:0 0 auto;
+}
+#lessonDialog > form.sheet > section.card{
+  flex:0 0 auto;
+  margin-bottom:8px;
+}
+#lessonDialog > form.sheet > button.primary.full{
+  flex:0 0 auto;
+  margin-top:auto;
+}
+#lessonDialog textarea{
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch;
+  resize:none;
+}
+#lessonContent{
+  max-height:150px;
+}
+#homework{
+  max-height:100px;
+}
+
+/* Inhalte etwas kompakter, damit alles auf einer Seite bleibt */
+#lessonDialog .sheet{
+  padding-top:6px;
+}
+#lessonDialog .sheet-head{
+  margin-bottom:4px;
+}
+#lessonDialog .card{
+  padding-top:10px;
+  padding-bottom:10px;
+}
+#lessonDialog .card h3{
+  margin-top:0;
+  margin-bottom:7px;
+}
+#lessonDialog #statusGroup{
+  margin-bottom:0;
+}
+#lessonDialog #statusExtra{
+  margin-top:0;
+}
+#lessonDialog #lessonContent{
+  min-height:92px;
+}
+#lessonDialog #homework{
+  min-height:68px;
+}
+
+/* Gleiches Prinzip beim Ergänzungsfach-Unterricht */
+#ensembleDialog{
+  overflow:hidden !important;
+  padding:0 !important;
+}
+#ensembleDialog[open]{
+  display:flex !important;
+  align-items:flex-end;
+  justify-content:center;
+}
+#ensembleDialog > form.sheet{
+  width:min(100%,680px);
+  height:min(92dvh,820px);
+  max-height:min(92dvh,820px);
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column;
+}
+#ensembleDialog .sheet-handle,
+#ensembleDialog .sheet-head{
+  flex:0 0 auto;
+}
+#ensembleDialog > form.sheet > section.card{
+  flex:0 0 auto;
+  margin-bottom:8px;
+}
+#ensembleDialog > form.sheet > button.primary.full{
+  flex:0 0 auto;
+  margin-top:auto;
+}
+#ensembleDialog textarea{
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch;
+  resize:none;
+}
+#ensembleContent{
+  max-height:140px;
+}
+#ensembleDialog .card{
+  padding-top:10px;
+  padding-bottom:10px;
+}
+#ensembleDialog .card h3{
+  margin-top:0;
+  margin-bottom:7px;
+}
+
+/* Kleine iPhones: fast volle Höhe, ohne dass der Dialog selbst scrollt */
+@media(max-height:700px){
+  #lessonDialog > form.sheet,
+  #ensembleDialog > form.sheet{
+    height:96dvh;
+    max-height:96dvh;
+  }
+  #lessonContent{
+    max-height:120px;
+    min-height:80px;
+  }
+  #homework{
+    max-height:82px;
+    min-height:58px;
+  }
+  #ensembleContent{
+    max-height:115px;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5291,7 +5481,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.33 – fixe Auswahlfenster mit echter mittlerer Scrollfläche -->
+<!-- Taktvoll V0.26.35 – Anwesenheitsdialog ohne Gesamtscroll -->
 </head>
 <body>
   <div class="app">
@@ -6202,13 +6392,26 @@ input[type="number"]{
           <input type="hidden" id="plannerEntitySelectedKey" value="">
         </div>
 
-        <div id="plannerCustomFields" style="display:none;margin-top:12px">
+        <div id="plannerCustomFields" hidden style="margin-top:12px">
           <label class="small muted">Bezeichnung</label>
           <input id="plannerCustomTitle" placeholder="z. B. Pause oder Fahrzeit">
           <div style="height:10px"></div>
           <label class="small muted">Dauer in Minuten</label>
           <input id="plannerCustomMinutes" type="number" min="1" step="5" value="15" inputmode="numeric">
+        </div>
 
+        <div id="plannerTimingFields" class="planner-timing-fields">
+          <label class="small muted">Start der neuen Einheit</label>
+          <div class="segmented planner-start-mode" id="plannerStartMode">
+            <button type="button" class="selected" data-start-mode="next">Direkt anschließend</button>
+            <button type="button" data-start-mode="time">Bestimmte Uhrzeit</button>
+          </div>
+
+          <div id="plannerSpecificStartWrap" hidden>
+            <label class="small muted">Startzeit</label>
+            <input id="plannerSpecificStart" type="time">
+            <div class="muted small" id="plannerSpecificStartHint" style="margin-top:5px"></div>
+          </div>
         </div>
       </section>
 
@@ -8854,6 +9057,7 @@ let plannerArchiveId=null;
 let timetableSaveMode="new";
 let plannerItemDay=null;
 let plannerEntitySearch="";
+let plannerStartMode="next";
 let plannerItemTypeMode="entity";
 let activeShiftTab="shifts";
 let resolvingShiftId=null;
@@ -9084,6 +9288,10 @@ function renderPlannerWeek(){
               </div>
 
               <div class="planner-row-buttons">
+                ${row.type==="custom"?`
+                  <button type="button" class="planner-rename-btn"
+                          data-day="${day}" data-index="${row.index}"
+                          aria-label="Eigene Einheit umbenennen">✎</button>`:""}
                 <button type="button" class="planner-move-btn"
                         data-day="${day}" data-index="${row.index}" data-dir="-1"
                         ${row.index===0?"disabled":""}>↑</button>
@@ -9108,6 +9316,10 @@ function renderPlannerWeek(){
   });
 
   box.querySelector(".planner-add-btn")?.addEventListener("click",()=>openPlannerItemDialog(day));
+
+  box.querySelectorAll(".planner-rename-btn").forEach(btn=>btn.addEventListener("click",()=>{
+    renamePlannerCustomItem(btn.dataset.day,Number(btn.dataset.index));
+  }));
 
   box.querySelectorAll(".planner-remove-btn").forEach(btn=>btn.addEventListener("click",()=>{
     plannerDraft[btn.dataset.day].items.splice(Number(btn.dataset.index),1);
@@ -9356,11 +9568,105 @@ function openTimetablePlanner(scope="all"){
   preparePlannerSchoolSelect();
   openTimetableArchive();
 }
+
+function plannerDayCurrentEnd(day){
+  const rows=plannerCalculatedRows(day);
+  if(rows.length) return rows[rows.length-1].end;
+  return plannerDraft?.[day]?.start||"14:00";
+}
+
+function updatePlannerSpecificStartHint(){
+  const hint=$("#plannerSpecificStartHint");
+  const input=$("#plannerSpecificStart");
+  if(!hint || !input || !plannerItemDay) return;
+
+  const currentEnd=plannerDayCurrentEnd(plannerItemDay);
+  const chosen=input.value||"";
+
+  if(!chosen){
+    hint.textContent=`Aktuelles Ende: ${currentEnd}. Wähle eine spätere Uhrzeit, um automatisch eine Zwischenzeit zu erzeugen.`;
+    return;
+  }
+
+  const gap=clockToMinutes(chosen)-clockToMinutes(currentEnd);
+  if(gap>0){
+    hint.textContent=`Zwischen ${currentEnd} und ${chosen} entstehen automatisch ${gap} Min „Lehrzeit“.`;
+  }else if(gap===0){
+    hint.textContent="Die neue Einheit schließt direkt an.";
+  }else{
+    hint.textContent=`Diese Uhrzeit liegt ${Math.abs(gap)} Min vor dem aktuellen Ende (${currentEnd}) und würde sich überschneiden.`;
+  }
+}
+
+function setPlannerStartMode(mode){
+  plannerStartMode=mode==="time"?"time":"next";
+  document.querySelectorAll("#plannerStartMode button").forEach(btn=>{
+    btn.classList.toggle("selected",btn.dataset.startMode===plannerStartMode);
+  });
+
+  const wrap=$("#plannerSpecificStartWrap");
+  if(wrap) wrap.hidden=plannerStartMode!=="time";
+
+  if(plannerStartMode==="time"){
+    const input=$("#plannerSpecificStart");
+    if(input && !input.value) input.value=plannerDayCurrentEnd(plannerItemDay);
+    updatePlannerSpecificStartHint();
+  }
+}
+
+function plannerInsertAutomaticGap(day,targetStart){
+  const currentEnd=plannerDayCurrentEnd(day);
+  const gap=clockToMinutes(targetStart)-clockToMinutes(currentEnd);
+
+  if(gap<0){
+    return {
+      ok:false,
+      message:`Die gewählte Startzeit ${targetStart} liegt vor dem bisherigen Ende ${currentEnd}. Bitte eine spätere Uhrzeit wählen.`
+    };
+  }
+
+  if(gap===0) return {ok:true,gap:0};
+
+  plannerDraft[day].items.push({
+    id:newPlannerCustomId(),
+    type:"custom",
+    title:"Lehrzeit",
+    duration:gap,
+    school:plannerScope==="all"?"":plannerScope,
+    autoGap:true
+  });
+
+  return {ok:true,gap};
+}
+
+function renamePlannerCustomItem(day,index){
+  const item=plannerDraft?.[day]?.items?.[index];
+  if(!item || item.type!=="custom") return;
+
+  const title=prompt("Bezeichnung der eigenen Einheit:",item.title||"Eigene Einheit");
+  if(title===null) return;
+
+  const clean=title.trim();
+  if(!clean) return;
+
+  item.title=clean;
+  renderPlannerWeek();
+}
+
 function setPlannerItemMode(mode){
   plannerItemTypeMode=mode==="custom"?"custom":"entity";
   document.querySelectorAll("#plannerItemType button").forEach(b=>b.classList.toggle("selected",b.dataset.type===plannerItemTypeMode));
-  $("#plannerEntityFields").style.display=plannerItemTypeMode==="entity"?"block":"none";
-  $("#plannerCustomFields").style.display=plannerItemTypeMode==="custom"?"block":"none";
+
+  const entityFields=$("#plannerEntityFields");
+  const customFields=$("#plannerCustomFields");
+
+  entityFields.hidden=plannerItemTypeMode!=="entity";
+  customFields.hidden=plannerItemTypeMode!=="custom";
+
+  if(plannerItemTypeMode==="custom"){
+    plannerEntitySearch="";
+    $("#plannerEntitySearch").value="";
+  }
 }
 function openPlannerItemDialog(day){
   plannerItemDay=day;
@@ -9377,11 +9683,36 @@ function openPlannerItemDialog(day){
 
   $("#plannerCustomTitle").value="";
   $("#plannerCustomMinutes").value="15";
+
+  plannerStartMode="next";
+  $("#plannerSpecificStart").value=plannerDayCurrentEnd(day);
+  document.querySelectorAll("#plannerStartMode button").forEach(btn=>{
+    btn.onclick=()=>setPlannerStartMode(btn.dataset.startMode);
+  });
+  $("#plannerSpecificStart").onchange=updatePlannerSpecificStartHint;
+  $("#plannerSpecificStart").oninput=updatePlannerSpecificStartHint;
+
   setPlannerItemMode("entity");
+  setPlannerStartMode("next");
   $("#plannerItemDialog").showModal();
 }
 function addPlannerItem(){
   if(!plannerItemDay)return;
+
+  if(plannerStartMode==="time"){
+    const targetStart=$("#plannerSpecificStart").value;
+    if(!targetStart){
+      alert("Bitte eine Startzeit auswählen.");
+      return;
+    }
+
+    const gapResult=plannerInsertAutomaticGap(plannerItemDay,targetStart);
+    if(!gapResult.ok){
+      alert(gapResult.message);
+      return;
+    }
+  }
+
   if(plannerItemTypeMode==="entity"){
     const key=$("#plannerEntitySelectedKey").value;
     const entity=plannerEntityByKey(key);
@@ -9399,11 +9730,10 @@ function addPlannerItem(){
       type:"custom",
       title,
       duration,
-      // Eigene Einheiten zeigen keine Musikschule an.
-      // Bei einem schulbezogenen Plan bleibt der Scope nur intern erhalten.
       school:plannerScope==="all"?"":plannerScope
     });
   }
+
   $("#plannerItemDialog").close();
   renderPlannerWeek();
 }
