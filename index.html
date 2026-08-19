@@ -4679,6 +4679,52 @@ textarea{
   font-weight:800;
 }
 
+
+/* V0.26.23 – Suche innerhalb Schüler/Ergänzungsfächer + unabhängige Aufklappbereiche */
+.school-section-list-scrollable{
+  max-height:min(58vh,560px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding-right:2px;
+}
+.school-section-inner-search{
+  position:sticky;
+  top:0;
+  z-index:4;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:center;
+  gap:7px;
+  margin:0 0 9px;
+  padding:7px 9px;
+  border:1px solid #dedee3;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.035);
+}
+.school-section-inner-search > span{
+  color:#85858d;
+  font-size:18px;
+}
+.school-section-inner-search input{
+  min-width:0;
+  min-height:38px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  font-size:14px !important;
+}
+.school-section-filter-results{
+  display:flex;
+  flex-direction:column;
+}
+.section-filter-empty{
+  padding:10px 4px 4px;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -9080,8 +9126,8 @@ function renderStudents(){
     const schoolOpen=true;
     const studentsKey=`${schoolId}:students`;
     const subjectsKey=`${schoolId}:subjects`;
-    const studentsOpen=q?matchingStudents.length>0:!!state.studentOverviewOpenSections[studentsKey];
-    const subjectsOpen=q?matchingSubjects.length>0:!!state.studentOverviewOpenSections[subjectsKey];
+    const studentsOpen=!!state.studentOverviewOpenSections[studentsKey] || (q && matchingStudents.length>0);
+    const subjectsOpen=!!state.studentOverviewOpenSections[subjectsKey] || (q && matchingSubjects.length>0);
     const load=schoolTeachingLoad(schoolId);
 
     return `
@@ -9106,7 +9152,16 @@ function renderStudents(){
               <span><strong>Schüler</strong><small>${students.length}</small></span><span>${studentsOpen?"⌄":"›"}</span>
             </button>
             ${studentsOpen?`
-              <div class="school-section-list">
+              <div class="school-section-list school-section-list-scrollable" data-section-list="students">
+                <div class="school-section-inner-search">
+                  <span>⌕</span>
+                  <input type="search"
+                         class="school-section-search-input"
+                         data-section-search="students"
+                         placeholder="Schüler, Instrument oder Standort suchen …"
+                         autocomplete="off">
+                </div>
+                <div class="school-section-filter-results">
                 ${(q?matchingStudents:students).length?(q?matchingStudents:students).map(s=>`
                   <div class="list-row student-overview-row">
                     <div class="student-overview-copy">
@@ -9117,13 +9172,24 @@ function renderStudents(){
                     </div>
                     <button class="secondary edit-student-btn fixed-edit-btn" data-id="${s.id}">Bearbeiten</button>
                   </div>`).join(""):`<p class="muted small section-empty">${q?"Keine passenden Schüler.":"Noch keine Schüler angelegt."}</p>`}
+                </div>
+                <p class="muted small section-filter-empty" hidden>Keine passenden Schüler gefunden.</p>
               </div>`:""}
 
             <button type="button" class="school-section-toggle" data-section-toggle="${subjectsKey}">
               <span><strong>Ergänzungsfächer</strong><small>${subjects.length}</small></span><span>${subjectsOpen?"⌄":"›"}</span>
             </button>
             ${subjectsOpen?`
-              <div class="school-section-list">
+              <div class="school-section-list school-section-list-scrollable" data-section-list="subjects">
+                <div class="school-section-inner-search">
+                  <span>⌕</span>
+                  <input type="search"
+                         class="school-section-search-input"
+                         data-section-search="subjects"
+                         placeholder="Ergänzungsfach oder Standort suchen …"
+                         autocomplete="off">
+                </div>
+                <div class="school-section-filter-results">
                 ${(q?matchingSubjects:subjects).length?(q?matchingSubjects:subjects).map(e=>{
                   const budget=e.type==="irregular"?irregularSubjectBudget(e):null;
                   return `<div class="list-row supplementary-overview-row">
@@ -9136,6 +9202,8 @@ function renderStudents(){
                     <button class="secondary edit-supplementary-btn fixed-edit-btn" data-id="${e.id}">Bearbeiten</button>
                   </div>`;
                 }).join(""):`<p class="muted small section-empty">${q?"Keine passenden Ergänzungsfächer.":"Noch keine Ergänzungsfächer angelegt."}</p>`}
+                </div>
+                <p class="muted small section-filter-empty" hidden>Keine passenden Ergänzungsfächer gefunden.</p>
               </div>`:""}
           </div>`:""}
       </div>`;
@@ -10661,6 +10729,26 @@ function bindViewEvents(){
     state.studentOverviewOpenSections[key]=!state.studentOverviewOpenSections[key];
     saveState();render();
   }));
+
+  document.querySelectorAll(".school-section-search-input").forEach(input=>{
+    input.addEventListener("input",()=>{
+      const list=input.closest(".school-section-list");
+      if(!list) return;
+
+      const term=(input.value||"").trim().toLowerCase();
+      const rows=[...list.querySelectorAll(".student-overview-row, .supplementary-overview-row")];
+      let visible=0;
+
+      rows.forEach(row=>{
+        const show=!term || row.textContent.toLowerCase().includes(term);
+        row.hidden=!show;
+        if(show) visible++;
+      });
+
+      const empty=list.querySelector(".section-filter-empty");
+      if(empty) empty.hidden=visible>0 || !term;
+    });
+  });
 
   $("#addSupplementaryBtn")?.addEventListener("click",()=>openSupplementaryEditor(null));
   $("#openTimetablePlannerBtn")?.addEventListener("click",()=>openTimetablePlanner("all"));
