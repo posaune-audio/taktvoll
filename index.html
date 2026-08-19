@@ -5656,6 +5656,65 @@ input[type="number"]{
   background:#fff5f4 !important;
 }
 
+
+/* V0.26.48 – Verschiebung: ganzer Unterrichtstag + Plusstunden-Suche */
+.shift-list-toolbar{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:10px 0 7px;
+}
+.shift-list-toolbar strong{
+  font-size:13px;
+}
+.shift-list-toolbar button{
+  flex:0 0 auto;
+  min-height:38px;
+  white-space:nowrap;
+}
+.credit-search-wrap{
+  flex:0 0 auto;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:7px;
+  align-items:center;
+  margin:7px 0 8px;
+  padding:7px 10px;
+  border:1px solid #dedee3;
+  border-radius:13px;
+  background:#fff;
+}
+.credit-search-wrap > span{
+  color:#85858d;
+  font-size:19px;
+}
+.credit-search-wrap input{
+  min-width:0;
+  min-height:40px !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  font-size:16px !important;
+}
+#newCreditDialog #creditEntityList,
+#newShiftDialog #newShiftLessonList{
+  flex:1 1 0 !important;
+  min-height:100px !important;
+}
+@media(max-width:420px){
+  .shift-list-toolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .shift-list-toolbar button{
+    width:100%;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5668,7 +5727,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.47 – schulfreie Tage vollständig in der Anwesenheitsliste -->
+<!-- Taktvoll V0.26.48 – Verschiebung Tagesauswahl + Plusstunden-Suche -->
 </head>
 <body>
   <div class="app">
@@ -6649,6 +6708,13 @@ input[type="number"]{
       <section class="card">
         <label class="small muted">Ursprünglicher Unterrichtstag</label>
         <input id="newShiftOriginalDate" type="date">
+        <div id="newShiftOriginalDateHint" class="muted small" style="margin-top:5px"></div>
+
+        <div class="shift-list-toolbar">
+          <strong>Unterricht an diesem Tag</strong>
+          <button type="button" class="secondary" id="selectAllShiftLessonsBtn">Alle Schüler auswählen</button>
+        </div>
+
         <div id="newShiftLessonList" class="shift-select-list fixed-dialog-scroll-region"></div>
       </section>
 
@@ -6713,6 +6779,13 @@ input[type="number"]{
 
         <div style="height:10px"></div>
         <label class="small muted">Schüler / Ergänzungsfächer</label>
+        <div class="credit-search-wrap">
+          <span>⌕</span>
+          <input id="creditEntitySearch"
+                 type="search"
+                 placeholder="Name, Instrument, Schule, Standort oder Einheit suchen …"
+                 autocomplete="off">
+        </div>
         <div id="creditEntityList" class="shift-select-list fixed-dialog-scroll-region"></div>
       </section>
 
@@ -10087,8 +10160,21 @@ function renderShiftRow(s){
 function renderNewShiftLessonList(){
   const date=$("#newShiftOriginalDate").value;
   const box=$("#newShiftLessonList");
-  if(!date){box.innerHTML="";return;}
+  const hint=$("#newShiftOriginalDateHint");
+  const selectAll=$("#selectAllShiftLessonsBtn");
+
+  if(!date){
+    box.innerHTML="";
+    if(hint) hint.textContent="";
+    if(selectAll) selectAll.disabled=true;
+    return;
+  }
+
+  const dayName=weekdayNames[dateObj(date).getDay()];
+  if(hint) hint.textContent=`${dayName} · ${formatEventDate(date)}`;
+
   const lessons=scheduledEntitiesForDate(date);
+
   box.innerHTML=lessons.length?lessons.map((l,i)=>`
     <label class="shift-check-row">
       <input type="checkbox" class="new-shift-check" data-index="${i}">
@@ -10096,8 +10182,29 @@ function renderNewShiftLessonList(){
         <strong>${l.time} · ${l.name}</strong>
         <small>${l.meta} · ${schoolShortName(l.school)}</small>
       </span>
-    </label>`).join(""):`<p class="muted small">An diesem Wochentag sind keine Schüler oder Ergänzungsfächer eingeteilt.</p>`;
+    </label>`).join(""):`<p class="muted small">An diesem Unterrichtstag sind keine Schüler oder Ergänzungsfächer eingeteilt.</p>`;
+
   box.dataset.lessons=JSON.stringify(lessons);
+
+  if(selectAll){
+    selectAll.disabled=!lessons.length;
+    selectAll.textContent="Alle Schüler auswählen";
+    selectAll.dataset.allSelected="false";
+  }
+}
+
+function toggleAllShiftLessons(){
+  const checks=[...document.querySelectorAll("#newShiftLessonList .new-shift-check")];
+  if(!checks.length) return;
+
+  const button=$("#selectAllShiftLessonsBtn");
+  const allSelected=checks.every(c=>c.checked);
+  checks.forEach(c=>c.checked=!allSelected);
+
+  if(button){
+    button.dataset.allSelected=String(!allSelected);
+    button.textContent=!allSelected?"Auswahl aufheben":"Alle Schüler auswählen";
+  }
 }
 function openNewShiftDialog(){
   $("#newShiftOriginalDate").value=state.selectedAttendanceDate||new Date().toISOString().slice(0,10);
@@ -10167,29 +10274,125 @@ function resolveShift(){
   $("#resolveShiftDialog").close();
   renderShiftManager();render();
 }
+let pendingCreditEntityKeys=new Set();
+
 function allCreditEntities(){
   return [
-    ...state.students.map(s=>({type:"student",id:s.id,name:s.name,school:s.school,duration:unitMinutes(s.unit||"E30"),meta:`${s.unit||"E30"} ${s.instrument||""}`})),
-    ...(state.supplementarySubjects||[]).map(s=>({type:"supplementary",id:s.id,name:s.name,school:s.school,duration:unitMinutes(s.unit||"E30"),meta:`${s.unit||"E30"} Ergänzungsfach`}))
-  ].sort((a,b)=>a.name.localeCompare(b.name,"de"));
+    ...state.students.map(s=>({
+      type:"student",
+      id:s.id,
+      name:s.name,
+      firstName:s.firstName||"",
+      lastName:s.lastName||"",
+      instrument:s.instrument||"",
+      location:s.location||"",
+      level:s.level||"",
+      unit:s.unit||"E30",
+      school:s.school,
+      schoolName:state.schools?.[s.school]?.name||"",
+      duration:unitMinutes(s.unit||"E30"),
+      meta:`${s.unit||"E30"} ${s.instrument||""}`
+    })),
+    ...(state.supplementarySubjects||[]).map(s=>({
+      type:"supplementary",
+      id:s.id,
+      name:s.name,
+      firstName:"",
+      lastName:"",
+      instrument:"Ergänzungsfach",
+      location:s.location||"",
+      level:s.type==="irregular"?"unregelmäßig / blockbar":"regelmäßig",
+      unit:s.unit||"E30",
+      school:s.school,
+      schoolName:state.schools?.[s.school]?.name||"",
+      duration:unitMinutes(s.unit||"E30"),
+      meta:`${s.unit||"E30"} Ergänzungsfach`
+    }))
+  ].sort((a,b)=>a.name.localeCompare(b.name,"de",{sensitivity:"base"}));
+}
+
+function creditEntityKey(entity){
+  return `${entity.type}:${entity.id}`;
+}
+
+function renderCreditEntityList(){
+  const box=$("#creditEntityList");
+  if(!box) return;
+
+  const q=String($("#creditEntitySearch")?.value||"").trim().toLocaleLowerCase("de");
+  const all=allCreditEntities();
+
+  const visible=all.map(e=>{
+    const fields=[
+      {v:e.name,w:100},
+      {v:e.firstName,w:95},
+      {v:e.lastName,w:95},
+      {v:e.instrument,w:80},
+      {v:e.schoolName,w:70},
+      {v:e.location,w:65},
+      {v:e.level,w:55},
+      {v:e.unit,w:50}
+    ];
+
+    let score=0;
+    if(q){
+      fields.forEach(f=>{
+        const v=String(f.v||"").toLocaleLowerCase("de");
+        if(!v) return;
+        if(v===q) score=Math.max(score,f.w+40);
+        else if(v.startsWith(q)) score=Math.max(score,f.w+20);
+        else if(v.includes(q)) score=Math.max(score,f.w);
+      });
+    }
+    return {e,score};
+  }).filter(x=>!q||x.score>0)
+    .sort((a,b)=>{
+      if(q && b.score!==a.score) return b.score-a.score;
+      return a.e.name.localeCompare(b.e.name,"de",{sensitivity:"base"});
+    });
+
+  box.innerHTML=visible.length?visible.map(({e},i)=>{
+    const key=creditEntityKey(e);
+    return `
+      <label class="shift-check-row">
+        <input type="checkbox"
+               class="credit-entity-check"
+               data-key="${key}"
+               ${pendingCreditEntityKeys.has(key)?"checked":""}>
+        <span>
+          <strong>${e.name}</strong>
+          <small>${[
+            e.meta,
+            e.schoolName,
+            e.location,
+            e.level
+          ].filter(Boolean).join(" · ")}</small>
+        </span>
+      </label>`;
+  }).join(""):`<p class="muted small">Keine passenden Schüler oder Ergänzungsfächer gefunden.</p>`;
+
+  box.dataset.entities=JSON.stringify(all);
+
+  box.querySelectorAll(".credit-entity-check").forEach(cb=>{
+    cb.addEventListener("change",()=>{
+      if(cb.checked) pendingCreditEntityKeys.add(cb.dataset.key);
+      else pendingCreditEntityKeys.delete(cb.dataset.key);
+    });
+  });
 }
 function openNewCreditDialog(){
   $("#creditHeldDate").value=new Date().toISOString().slice(0,10);
   $("#creditCount").value="1";
-  const entities=allCreditEntities();
-  $("#creditEntityList").innerHTML=entities.map((e,i)=>`
-    <label class="shift-check-row">
-      <input type="checkbox" class="credit-entity-check" data-index="${i}">
-      <span><strong>${e.name}</strong><small>${e.meta} · ${schoolShortName(e.school)}</small></span>
-    </label>`).join("");
-  $("#creditEntityList").dataset.entities=JSON.stringify(entities);
+  $("#creditEntitySearch").value="";
+  pendingCreditEntityKeys=new Set();
+  renderCreditEntityList();
   $("#newCreditDialog").showModal();
 }
 function createCredits(){
   const heldDate=$("#creditHeldDate").value;
   const count=Math.max(1,Number($("#creditCount").value)||1);
-  const entities=JSON.parse($("#creditEntityList").dataset.entities||"[]");
-  const selected=[...document.querySelectorAll(".credit-entity-check:checked")].map(c=>entities[Number(c.dataset.index)]).filter(Boolean);
+  const entities=allCreditEntities();
+  const selected=entities.filter(e=>pendingCreditEntityKeys.has(creditEntityKey(e)));
   if(!heldDate){alert("Bitte ein Datum eintragen.");return;}
   if(!selected.length){alert("Bitte mindestens einen Schüler oder ein Ergänzungsfach auswählen.");return;}
 
@@ -13000,7 +13203,9 @@ document.querySelectorAll(".shift-tabs button").forEach(b=>b.addEventListener("c
   renderShiftManager();
 }));
 $("#newShiftOriginalDate").addEventListener("change",renderNewShiftLessonList);
+$("#selectAllShiftLessonsBtn").addEventListener("click",toggleAllShiftLessons);
 $("#createShiftRecordsBtn").addEventListener("click",createShiftRecords);
+$("#creditEntitySearch").addEventListener("input",renderCreditEntityList);
 document.querySelectorAll("#resolveShiftMode button").forEach(b=>b.addEventListener("click",()=>setResolveShiftMode(b.dataset.mode)));
 $("#resolveShiftConfirmBtn").addEventListener("click",resolveShift);
 $("#createCreditsBtn").addEventListener("click",createCredits);
