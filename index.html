@@ -4492,6 +4492,193 @@ textarea{
   line-height:1.25;
 }
 
+
+/* V0.26.19 – Musikschulen immer offen + Beteiligten-Suche */
+.school-static-head{
+  cursor:default !important;
+}
+.school-static-head:active{
+  transform:none !important;
+}
+.school-static-head .school-toggle-copy{
+  width:100%;
+}
+.school-static-head .school-chevron{
+  display:none !important;
+}
+
+/* In der Übersicht wird bewusst kein Bundesland gezeigt. */
+.compact-school-card .school-title-full{
+  margin-top:0 !important;
+}
+
+.event-participant-search-wrap{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:7px;
+  min-height:48px;
+  margin:8px 0 10px;
+  padding:0 10px;
+  border:1px solid #dedee3;
+  border-radius:14px;
+  background:#fff;
+}
+.event-participant-search-wrap > span{
+  color:#8a8a92;
+  font-size:20px;
+}
+.event-participant-search-wrap input{
+  min-height:44px !important;
+  border:0 !important;
+  padding:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.event-participant-search-wrap button{
+  width:28px;
+  height:28px;
+  border:0;
+  border-radius:50%;
+  background:#eeeef1;
+  color:#666;
+}
+.event-participant-empty{
+  padding:14px;
+}
+
+
+/* V0.26.20 – Vorschlagssuche Schüler & Ergänzungsfächer */
+.student-overview-search-wrap{
+  position:relative;
+}
+.student-overview-search-dropdown{
+  position:absolute;
+  left:0;
+  right:0;
+  top:calc(100% + 7px);
+  z-index:120;
+  display:none;
+  max-height:360px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid #dddde3;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 18px 42px rgba(17,17,19,.14);
+}
+.student-overview-search-dropdown.open{
+  display:block;
+}
+.student-overview-search-option{
+  width:100%;
+  border:0;
+  border-bottom:1px solid #eeeeF1;
+  background:#fff;
+  color:#111113;
+  padding:11px 12px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+}
+.student-overview-search-option:last-child{
+  border-bottom:0;
+}
+.student-overview-search-option:active{
+  background:#f4f4f6;
+}
+.student-overview-search-option-main{
+  min-width:0;
+}
+.student-overview-search-option-title{
+  font-weight:850;
+  line-height:1.2;
+  white-space:normal;
+}
+.student-overview-search-option-meta{
+  margin-top:2px;
+  color:#777780;
+  font-size:12.5px;
+  line-height:1.3;
+  white-space:normal;
+}
+.student-overview-search-option-kind{
+  align-self:start;
+  padding:5px 7px;
+  border-radius:999px;
+  background:#f1f1f3;
+  color:#606067;
+  font-size:10px;
+  font-weight:850;
+  white-space:nowrap;
+}
+.student-overview-search-empty{
+  padding:14px;
+  color:#777780;
+  font-size:13px;
+}
+.search-highlight{
+  animation:taktvollSearchHighlight 1.4s ease;
+}
+@keyframes taktvollSearchHighlight{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,0,0,0)}
+  20%,70%{box-shadow:0 0 0 3px rgba(17,17,19,.13)}
+}
+
+
+/* V0.26.21 – Audio-/Playlist-Erstellung */
+.audio-add-white{
+  flex:1;
+  min-height:46px;
+  border:1px solid #d9d9df;
+  border-radius:14px;
+  background:#fff;
+  color:#111113;
+  font-size:16px;
+  font-weight:800;
+  padding:10px 12px;
+}
+.audio-add-white:active{
+  background:#f4f4f6;
+}
+.playlist-new-audio-preview{
+  margin-top:4px;
+}
+.playlist-upload-file-list{
+  margin-top:8px;
+  border:1px solid #e4e4e8;
+  border-radius:13px;
+  overflow:hidden;
+  background:#fff;
+}
+.playlist-upload-file-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:8px;
+  align-items:center;
+  padding:9px 10px;
+  border-bottom:1px solid #eeeeF1;
+  font-size:13px;
+}
+.playlist-upload-file-row:last-child{
+  border-bottom:0;
+}
+.playlist-upload-file-row span{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+.playlist-remove-upload{
+  border:0;
+  border-radius:9px;
+  background:#efeff2;
+  color:#55555c;
+  padding:6px 8px;
+  font-size:11px;
+  font-weight:800;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4942,19 +5129,10 @@ textarea{
         </div>
       </section>
 
-      <section class="card" id="cloudTokenSection">
-        <div class="eyebrow">Nur auf diesem Gerät</div>
-        <label class="small muted">Cloud-Schlüssel</label>
-        <input id="cloudAdminTokenInput" type="password" autocomplete="off" placeholder="ADMIN_TOKEN">
-        <p class="muted small">
-          Der Schlüssel wird nur lokal in diesem Browser gespeichert und nicht mit deiner Taktvoll-Datei exportiert.
-        </p>
-      </section>
-
       <div id="audioShareProgress" class="card" style="display:none"></div>
 
       <div class="share-dialog-sticky-footer">
-        <div class="share-dialog-summary" id="shareDialogSummary">Bereit zum Teilen</div>
+        <div class="share-dialog-summary" id="shareDialogSummary">Bereit zum Teilen · über deinen Taktvoll-Account</div>
         <button class="primary full" type="submit" value="default" id="createAudioShareBtn">
           Freigabe erstellen
         </button>
@@ -5055,12 +5233,28 @@ textarea{
       </section>
 
       <section class="card">
-        <h3>Audios auswählen</h3>
+        <h3>Bereits vorhandene Audios auswählen</h3>
         <input id="playlistAudioSearch" placeholder="Audio suchen …">
         <div id="playlistAudioChoices"></div>
       </section>
 
-      <button class="primary full" type="submit" value="default">Playlist speichern</button>
+      <section class="card">
+        <div class="eyebrow">NEUE AUDIOS</div>
+        <h3>Audios direkt hochladen</h3>
+        <p class="muted small">
+          Du kannst mehrere Audiodateien gleichzeitig auswählen. Sie werden als einzelne Audios
+          in der Bibliothek gespeichert und automatisch dieser Playlist hinzugefügt.
+        </p>
+        <button type="button" class="secondary full" id="playlistUploadAudioBtn">+ Audios hochladen</button>
+        <input id="playlistNewAudioFiles"
+               type="file"
+               accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac"
+               multiple
+               style="display:none">
+        <div id="playlistNewAudioPreview" class="playlist-new-audio-preview"></div>
+      </section>
+
+      <button class="primary full" type="submit" value="default" id="playlistSaveBtn">Playlist speichern</button>
     </form>
   </dialog>
 
@@ -5189,6 +5383,15 @@ textarea{
         <div class="muted small" style="margin-bottom:8px">
           Wähle aus, wen der Termin betrifft. Für jeden Eintrag kannst du darunter das Programm bzw. den Beitrag festhalten.
         </div>
+
+        <div class="event-participant-search-wrap">
+          <span>⌕</span>
+          <input id="eventParticipantSearch"
+                 placeholder="Schüler oder Ergänzungsfach suchen …"
+                 autocomplete="off">
+          <button type="button" id="clearEventParticipantSearch" aria-label="Suche löschen">✕</button>
+        </div>
+
         <div id="eventParticipantList" class="event-participant-list"></div>
       </section>
 
@@ -6056,8 +6259,8 @@ function renderAudioLibraryView(){
       </div>
 
       <div class="row audio-add-row">
-        <button class="primary" id="addAudioLibraryBtn">+ Audio</button>
-        <button class="secondary" id="addPlaylistBtn">+ Playlist</button>
+        <button class="audio-add-white" id="addAudioLibraryBtn">+ Audio</button>
+        <button class="audio-add-white" id="addPlaylistBtn">+ Playlist</button>
       </div>
 
       <div class="audio-section-switch">
@@ -6247,18 +6450,9 @@ function renderAudioLibraryView(){
 }
 
 const TAKTVOLL_CLOUD_BASE="https://taktvoll-audio.9z6hnrbb5j.workers.dev";
-const TAKTVOLL_TOKEN_KEY="taktvoll_cloud_admin_token";
 let pendingCloudShareAudioIds=[];
 let pendingCloudShareMode="both";
 
-function getCloudAdminToken(){
-  return localStorage.getItem(TAKTVOLL_TOKEN_KEY)||"";
-}
-
-function setCloudAdminToken(value){
-  const token=String(value||"").trim();
-  if(token) localStorage.setItem(TAKTVOLL_TOKEN_KEY,token);
-}
 
 function shareAudioObjects(ids){
   return [...new Set(ids)]
@@ -6288,7 +6482,6 @@ function openAudioShareDialog(ids,title=""){
     b.classList.toggle("active",b.dataset.shareMode==="both");
   });
 
-  $("#cloudAdminTokenInput").value=getCloudAdminToken();
   if($("#shareDialogSummary")){
     $("#shareDialogSummary").textContent=`${audios.length} Audio${audios.length===1?"":"s"} · QR-Code & Link`;
   }
@@ -6352,7 +6545,29 @@ function openMultipleAudioShareSelector(){
   $("#audioMultiSelectDialog").showModal();
 }
 
-async function uploadAudioForShare(audio,token,onProgress){
+
+async function taktvollAudioAuthHeaders(extra={}){
+  if(!taktvollSupabase){
+    throw new Error("Bitte zuerst mit deinem Taktvoll-Account anmelden.");
+  }
+
+  const {data,error}=await taktvollSupabase.auth.getSession();
+  if(error) throw error;
+
+  const session=data?.session;
+  if(!session?.access_token){
+    throw new Error("Für Audio-Freigaben musst du mit deinem Taktvoll-Account angemeldet sein.");
+  }
+
+  taktvollAuthSession=session;
+
+  return {
+    ...extra,
+    "Authorization":`Bearer ${session.access_token}`
+  };
+}
+
+async function uploadAudioForShare(audio,onProgress){
   if(audio.cloudUploadedAt){
     onProgress?.(`${audio.title}: bereits online`);
     return audio.id;
@@ -6365,10 +6580,10 @@ async function uploadAudioForShare(audio,token,onProgress){
 
   const response=await fetch(`${TAKTVOLL_CLOUD_BASE}/api/audio/${encodeURIComponent(audio.id)}`,{
     method:"PUT",
-    headers:{
+    headers:await taktvollAudioAuthHeaders({
       "Content-Type":stored.type||stored.blob.type||"audio/mpeg",
-      "X-Taktvoll-Token":token
-    },
+      "X-Audio-Title":audio.title||"Taktvoll Audio"
+    }),
     body:stored.blob
   });
 
@@ -6388,13 +6603,6 @@ async function uploadAudioForShare(audio,token,onProgress){
 }
 
 async function createCloudAudioShare(){
-  const token=$("#cloudAdminTokenInput").value.trim();
-  if(!token){
-    alert("Bitte den Cloud-Schlüssel eingeben.");
-    return;
-  }
-  setCloudAdminToken(token);
-
   const audios=shareAudioObjects(pendingCloudShareAudioIds);
   if(!audios.length) return;
 
@@ -6414,17 +6622,16 @@ async function createCloudAudioShare(){
 
   try{
     for(const audio of audios){
-      await uploadAudioForShare(audio,token,updateProgress);
+      await uploadAudioForShare(audio,updateProgress);
     }
 
     updateProgress("Freigabelink wird erstellt …");
 
     const response=await fetch(`${TAKTVOLL_CLOUD_BASE}/api/share`,{
       method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "X-Taktvoll-Token":token
-      },
+      headers:await taktvollAudioAuthHeaders({
+        "Content-Type":"application/json"
+      }),
       body:JSON.stringify({
         title,
         tracks:audios.map(a=>({id:a.id,title:a.title}))
@@ -6559,18 +6766,20 @@ async function showCloudShareResult(share){
 async function deleteCloudShare(id){
   if(!confirm("Diese Freigabe wirklich beenden? Der gedruckte QR-Code bzw. Link funktioniert danach nicht mehr.")) return;
 
-  const token=getCloudAdminToken();
-  if(!token){
-    alert("Cloud-Schlüssel fehlt auf diesem Gerät.");
-    return;
-  }
-
   try{
     const res=await fetch(`${TAKTVOLL_CLOUD_BASE}/api/share/${encodeURIComponent(id)}`,{
       method:"DELETE",
-      headers:{"X-Taktvoll-Token":token}
+      headers:await taktvollAudioAuthHeaders()
     });
-    if(!res.ok) throw new Error(`Serverfehler ${res.status}`);
+
+    if(!res.ok){
+      let message=`Serverfehler ${res.status}`;
+      try{
+        const data=await res.json();
+        if(data?.error) message=data.error;
+      }catch(_){}
+      throw new Error(message);
+    }
 
     state.cloudShares=(state.cloudShares||[]).filter(s=>s.id!==id);
     saveState();
@@ -7423,10 +7632,41 @@ function renderToday(){
 let editingLibraryId=null;
 
 
+let pendingPlaylistAudioFiles=[];
+
+function renderPendingPlaylistAudioFiles(){
+  const box=$("#playlistNewAudioPreview");
+  if(!box) return;
+
+  box.innerHTML=pendingPlaylistAudioFiles.length ? `
+    <div class="muted small" style="margin-top:10px">
+      ${pendingPlaylistAudioFiles.length} neue Audio${pendingPlaylistAudioFiles.length===1?"":"s"} ausgewählt
+    </div>
+    <div class="playlist-upload-file-list">
+      ${pendingPlaylistAudioFiles.map((f,i)=>`
+        <div class="playlist-upload-file-row">
+          <span>🎧 ${f.name}</span>
+          <button type="button" class="playlist-remove-upload" data-i="${i}">Entfernen</button>
+        </div>
+      `).join("")}
+    </div>
+  ` : "";
+
+  box.querySelectorAll(".playlist-remove-upload").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      pendingPlaylistAudioFiles.splice(Number(btn.dataset.i),1);
+      renderPendingPlaylistAudioFiles();
+    });
+  });
+}
+
 function openPlaylistDialog(){
+  pendingPlaylistAudioFiles=[];
   $("#playlistName").value="";
   renderPlaylistChoices("");
   $("#playlistAudioSearch").value="";
+  $("#playlistNewAudioFiles").value="";
+  renderPendingPlaylistAudioFiles();
   $("#playlistDialog").showModal();
 }
 function renderPlaylistChoices(query=""){
@@ -8654,6 +8894,173 @@ function alphaByName(a,b){
   return (a?.name||"").localeCompare(b?.name||"","de",{sensitivity:"base"});
 }
 
+
+function studentOverviewSearchSuggestions(query){
+  const q=String(query||"").trim().toLowerCase();
+  if(!q) return [];
+
+  const results=[];
+
+  Object.entries(state.schools||{}).forEach(([schoolId,school])=>{
+    const schoolHaystack=[
+      school.name,
+      school.state,
+      ...(school.locations||[])
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    if(schoolHaystack.includes(q)){
+      results.push({
+        type:"school",
+        id:schoolId,
+        schoolId,
+        title:school.name,
+        meta:[
+          ...(school.locations||[])
+        ].filter(Boolean).join(" · ") || "Musikschule",
+        match:"Musikschule"
+      });
+    }
+
+    (state.students||[])
+      .filter(s=>s.school===schoolId)
+      .forEach(s=>{
+        const haystack=[
+          s.name,
+          s.instrument,
+          s.level,
+          s.location,
+          s.unit,
+          school.name
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        if(haystack.includes(q)){
+          let match="Schüler";
+          if(String(s.instrument||"").toLowerCase().includes(q)) match="Instrument";
+          else if(String(s.location||"").toLowerCase().includes(q)) match="Standort";
+          else if(String(s.unit||"").toLowerCase().includes(q)) match="Einheit";
+          else if(String(school.name||"").toLowerCase().includes(q)) match="Musikschule";
+
+          results.push({
+            type:"student",
+            id:String(s.id),
+            schoolId,
+            title:s.name,
+            meta:`${s.unit||"E30"} ${s.instrument||""}${s.location?` · ${s.location}`:""}`,
+            match
+          });
+        }
+      });
+
+    (state.supplementarySubjects||[])
+      .filter(s=>s.school===schoolId)
+      .forEach(s=>{
+        const haystack=[
+          s.name,
+          s.location,
+          s.unit,
+          school.name,
+          s.type==="irregular"?"unregelmäßig blockbar":"regelmäßig"
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        if(haystack.includes(q)){
+          let match="Ergänzungsfach";
+          if(String(s.location||"").toLowerCase().includes(q)) match="Standort";
+          else if(String(s.unit||"").toLowerCase().includes(q)) match="Einheit";
+          else if(String(school.name||"").toLowerCase().includes(q)) match="Musikschule";
+
+          results.push({
+            type:"supplementary",
+            id:String(s.id),
+            schoolId,
+            title:s.name,
+            meta:`${s.unit||"E30"} Ergänzungsfach${s.location?` · ${s.location}`:""}`,
+            match
+          });
+        }
+      });
+  });
+
+  const priority={student:1,supplementary:2,school:3};
+
+  return results
+    .sort((a,b)=>{
+      const aStarts=a.title.toLowerCase().startsWith(q)?0:1;
+      const bStarts=b.title.toLowerCase().startsWith(q)?0:1;
+      if(aStarts!==bStarts) return aStarts-bStarts;
+      if(priority[a.type]!==priority[b.type]) return priority[a.type]-priority[b.type];
+      return a.title.localeCompare(b.title,"de",{sensitivity:"base"});
+    })
+    .slice(0,20);
+}
+
+function renderStudentOverviewSearchDropdown(){
+  const box=$("#studentOverviewSearchDropdown");
+  const input=$("#studentOverviewSearch");
+  if(!box || !input) return;
+
+  const q=input.value.trim();
+  if(!q){
+    box.classList.remove("open");
+    box.innerHTML="";
+    return;
+  }
+
+  const results=studentOverviewSearchSuggestions(q);
+
+  box.innerHTML=results.length ? results.map(item=>`
+    <button type="button"
+            class="student-overview-search-option"
+            data-search-type="${item.type}"
+            data-search-id="${item.id}"
+            data-search-school="${item.schoolId}">
+      <div class="student-overview-search-option-main">
+        <div class="student-overview-search-option-title">${item.title}</div>
+        <div class="student-overview-search-option-meta">${item.meta}</div>
+      </div>
+      <span class="student-overview-search-option-kind">${item.match}</span>
+    </button>
+  `).join("") : `<div class="student-overview-search-empty">Keine passenden Vorschläge.</div>`;
+
+  box.classList.add("open");
+
+  box.querySelectorAll(".student-overview-search-option").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const type=btn.dataset.searchType;
+      const id=btn.dataset.searchId;
+      const schoolId=btn.dataset.searchSchool;
+
+      state.studentOverviewSearch="";
+
+      if(type==="student"){
+        state.studentOverviewOpenSections[`${schoolId}:students`]=true;
+      }else if(type==="supplementary"){
+        state.studentOverviewOpenSections[`${schoolId}:subjects`]=true;
+      }
+
+      saveState();
+      render();
+
+      requestAnimationFrame(()=>{
+        if(type==="student"){
+          const target=document.querySelector(`.edit-student-btn[data-id="${CSS.escape(id)}"]`)?.closest(".student-overview-row");
+          target?.scrollIntoView({behavior:"smooth",block:"center"});
+          target?.classList.add("search-highlight");
+          setTimeout(()=>target?.classList.remove("search-highlight"),1400);
+        }else if(type==="supplementary"){
+          const target=document.querySelector(`.edit-supplementary-btn[data-id="${CSS.escape(id)}"]`)?.closest(".supplementary-overview-row");
+          target?.scrollIntoView({behavior:"smooth",block:"center"});
+          target?.classList.add("search-highlight");
+          setTimeout(()=>target?.classList.remove("search-highlight"),1400);
+        }else{
+          const target=document.querySelector(`[data-school-card="${CSS.escape(schoolId)}"]`);
+          target?.scrollIntoView({behavior:"smooth",block:"start"});
+          target?.classList.add("search-highlight");
+          setTimeout(()=>target?.classList.remove("search-highlight"),1400);
+        }
+      });
+    });
+  });
+}
 function renderStudents(){
   const schoolEntries=Object.entries(state.schools)
     .sort((a,b)=>(a[1]?.name||"").localeCompare(b[1]?.name||"","de",{sensitivity:"base"}));
@@ -8670,7 +9077,7 @@ function renderStudents(){
     const schoolMatches=!q||[school.name,school.state,...(school.locations||[])].some(matches);
     if(q && !(schoolMatches||matchingStudents.length||matchingSubjects.length)) return "";
 
-    const schoolOpen=q?true:!!state.studentOverviewOpenSchools[schoolId];
+    const schoolOpen=true;
     const studentsKey=`${schoolId}:students`;
     const subjectsKey=`${schoolId}:subjects`;
     const studentsOpen=q?matchingStudents.length>0:!!state.studentOverviewOpenSections[studentsKey];
@@ -8678,11 +9085,10 @@ function renderStudents(){
     const load=schoolTeachingLoad(schoolId);
 
     return `
-      <div class="card school-card compact-school-card">
+      <div class="card school-card compact-school-card" data-school-card="${schoolId}">
         <div class="school-main-row">
-          <button type="button" class="school-toggle-btn" data-school-toggle="${schoolId}">
+          <div class="school-toggle-btn school-static-head">
             <div class="school-toggle-copy">
-              <div class="eyebrow">${school.state||""}</div>
               <div class="bold school-title-full">${school.name}</div>
               <div class="muted small">${(school.locations||[]).length?(school.locations||[]).join(" · "):"Noch kein Standort"}</div>
               <div class="school-teaching-load">
@@ -8690,8 +9096,7 @@ function renderStudents(){
                 <div class="muted small">Schüler ${formatTeachingLoad(load.students)} · Ergänzungsfächer ${formatTeachingLoad(load.supplementary)}</div>
               </div>
             </div>
-            <span class="school-chevron">${schoolOpen?"⌄":"›"}</span>
-          </button>
+          </div>
           <button class="secondary edit-school-btn fixed-edit-btn" data-id="${schoolId}">Bearbeiten</button>
         </div>
 
@@ -8738,10 +9143,16 @@ function renderStudents(){
 
   return `
     <div class="card student-overview-search-card">
-      <div class="student-overview-search">
-        <span>⌕</span>
-        <input id="studentOverviewSearch" value="${String(state.studentOverviewSearch||"").replace(/"/g,"&quot;")}" placeholder="Musikschule, Schüler oder Ergänzungsfach suchen …">
-        ${state.studentOverviewSearch?`<button type="button" id="clearStudentOverviewSearch">✕</button>`:""}
+      <div class="student-overview-search-wrap">
+        <div class="student-overview-search">
+          <span>⌕</span>
+          <input id="studentOverviewSearch"
+                 value="${String(state.studentOverviewSearch||"").replace(/"/g,"&quot;")}"
+                 placeholder="Musikschule, Schüler, Instrument oder Standort suchen …"
+                 autocomplete="off">
+          ${state.studentOverviewSearch?`<button type="button" id="clearStudentOverviewSearch">✕</button>`:""}
+        </div>
+        <div id="studentOverviewSearchDropdown" class="student-overview-search-dropdown"></div>
       </div>
     </div>
 
@@ -9557,6 +9968,7 @@ function openStudentEditor(id=null){
 let editingCalendarEventId=null;
 let editingCalendarEventSchoolId=null;
 let editingCalendarParticipants=[];
+let editingCalendarParticipantSearch="";
 
 function calendarEventById(schoolId,eventId){
   return (state.calendars?.[schoolId]||[]).find(ev=>String(ev.id)===String(eventId))||null;
@@ -9579,8 +9991,9 @@ function renderEventParticipantEditor(){
   const box=$("#eventParticipantList");
   if(!box) return;
   const schoolId=$("#eventSchool").value;
+  const q=(editingCalendarParticipantSearch||"").trim().toLowerCase();
 
-  const entities=[
+  const allEntities=[
     ...state.students
       .filter(s=>s.school===schoolId)
       .sort(alphaByName)
@@ -9590,6 +10003,10 @@ function renderEventParticipantEditor(){
       .sort(alphaByName)
       .map(s=>({type:"supplementary",id:String(s.id),name:s.name,meta:`${s.unit||"E30"} Ergänzungsfach`}))
   ];
+
+  const entities=q
+    ? allEntities.filter(e=>`${e.name} ${e.meta}`.toLowerCase().includes(q))
+    : allEntities;
 
   const selected=new Map(editingCalendarParticipants.map(p=>[participantKey(p.type,p.id),p]));
 
@@ -9612,7 +10029,9 @@ function renderEventParticipantEditor(){
                     rows="2" placeholder="${e.type==="student"?"z. B. Concertino – 1. Satz":"z. B. Ensemblebeitrag"}">${picked?.program||""}</textarea>
         </div>
       </div>`;
-  }).join("") : `<div class="muted small">Für diese Musikschule sind noch keine Schüler oder Ergänzungsfächer angelegt.</div>`;
+  }).join("") : `<div class="muted small event-participant-empty">
+    ${q?"Keine passenden Beteiligten gefunden.":"Für diese Musikschule sind noch keine Schüler oder Ergänzungsfächer angelegt."}
+  </div>`;
 
   box.querySelectorAll(".event-participant-checkbox").forEach(cb=>{
     cb.addEventListener("change",()=>{
@@ -9620,25 +10039,53 @@ function renderEventParticipantEditor(){
       renderEventParticipantEditor();
     });
   });
+
+  box.querySelectorAll(".event-program-input").forEach(input=>{
+    input.addEventListener("input",()=>{
+      const type=input.dataset.type;
+      const id=input.dataset.id;
+      const existing=editingCalendarParticipants.find(p=>p.type===type && String(p.id)===String(id));
+      if(existing) existing.program=input.value;
+    });
+  });
 }
 
 function syncEventParticipantsFromEditor(){
-  const existing=new Map(editingCalendarParticipants.map(p=>[participantKey(p.type,p.id),p]));
-  const result=[];
+  const current=new Map(
+    editingCalendarParticipants.map(p=>[
+      participantKey(p.type,p.id),
+      normalizeCalendarParticipant(p)
+    ])
+  );
 
-  document.querySelectorAll(".event-participant-checkbox:checked").forEach(cb=>{
+  // Nur die aktuell sichtbaren Suchergebnisse ändern.
+  // Versteckte, bereits ausgewählte Beteiligte bleiben dadurch erhalten.
+  document.querySelectorAll(".event-participant-checkbox").forEach(cb=>{
     const type=cb.dataset.type;
     const id=cb.dataset.id;
     const key=participantKey(type,id);
-    const entity=type==="student"
-      ? state.students.find(s=>String(s.id)===String(id))
-      : (state.supplementarySubjects||[]).find(s=>String(s.id)===String(id));
-    const program=document.querySelector(`.event-program-input[data-type="${type}"][data-id="${id}"]`)?.value
-      ?? existing.get(key)?.program ?? "";
-    result.push({type,id,name:entity?.name||existing.get(key)?.name||"",program});
+
+    if(cb.checked){
+      const entity=type==="student"
+        ? state.students.find(s=>String(s.id)===String(id))
+        : (state.supplementarySubjects||[]).find(s=>String(s.id)===String(id));
+
+      const program=document.querySelector(
+        `.event-program-input[data-type="${type}"][data-id="${id}"]`
+      )?.value ?? current.get(key)?.program ?? "";
+
+      current.set(key,{
+        type,
+        id:String(id),
+        name:entity?.name||current.get(key)?.name||"",
+        program
+      });
+    }else{
+      current.delete(key);
+    }
   });
 
-  editingCalendarParticipants=result;
+  editingCalendarParticipants=[...current.values()];
 }
 
 function calendarEventsForDate(date){
@@ -9690,6 +10137,8 @@ function openCalendarEventEditor(schoolId=null,eventId=null){
   $("#eventTime").value=existing?.time||"";
   $("#eventNotes").value=existing?.notes||"";
   editingCalendarParticipants=(existing?.participants||[]).map(normalizeCalendarParticipant);
+  editingCalendarParticipantSearch="";
+  if($("#eventParticipantSearch")) $("#eventParticipantSearch").value="";
 
   populateLocationSelect($("#eventLocation"),schoolSelect.value,existing?.location||"");
 
@@ -9702,6 +10151,20 @@ function openCalendarEventEditor(schoolId=null,eventId=null){
 
   $("#deleteCalendarEventBtn").style.display=existing?"block":"none";
   renderEventParticipantEditor();
+
+  $("#eventParticipantSearch").oninput=(e)=>{
+    syncEventParticipantsFromEditor();
+    editingCalendarParticipantSearch=e.target.value||"";
+    renderEventParticipantEditor();
+  };
+  $("#clearEventParticipantSearch").onclick=()=>{
+    syncEventParticipantsFromEditor();
+    editingCalendarParticipantSearch="";
+    $("#eventParticipantSearch").value="";
+    renderEventParticipantEditor();
+    $("#eventParticipantSearch").focus();
+  };
+
   $("#calendarEventDialog").showModal();
 }
 
@@ -9811,14 +10274,31 @@ $("#lessonForm").onsubmit=(e)=>{
 
 
 function bindViewEvents(){
+
+  document.addEventListener("click",window.__taktvollStudentSearchOutsideHandler||(()=>{}));
+  if(window.__taktvollStudentSearchOutsideHandler){
+    document.removeEventListener("click",window.__taktvollStudentSearchOutsideHandler);
+  }
+  window.__taktvollStudentSearchOutsideHandler=(e)=>{
+    if(!e.target.closest(".student-overview-search-wrap")){
+      $("#studentOverviewSearchDropdown")?.classList.remove("open");
+    }
+  };
+  document.addEventListener("click",window.__taktvollStudentSearchOutsideHandler);
+
+
   document.querySelectorAll(".dialog-close-btn").forEach(btn=>btn.addEventListener("click",()=>{
     const dlg=btn.closest("dialog");
     if(dlg && dlg.open) dlg.close();
     if(dlg?.id==="studentEditDialog") editingStudentId=null;
+    if(dlg?.id==="playlistDialog"){
+      pendingPlaylistAudioFiles=[];
+    }
     if(dlg?.id==="calendarEventDialog"){
       editingCalendarEventId=null;
       editingCalendarEventSchoolId=null;
       editingCalendarParticipants=[];
+      editingCalendarParticipantSearch="";
     }
     if(dlg?.id==="schoolEditDialog") editingSchoolId=null;
     if(dlg?.id==="lessonDialog" || dlg?.id==="ensembleDialog") state.currentLesson=null;
@@ -10163,18 +10643,19 @@ function bindViewEvents(){
 
   $("#studentOverviewSearch")?.addEventListener("input",e=>{
     state.studentOverviewSearch=e.target.value;
-    saveState(); render();
-    requestAnimationFrame(()=>{
-      const input=$("#studentOverviewSearch");
-      if(input){ input.focus(); input.setSelectionRange(input.value.length,input.value.length); }
-    });
+    saveState();
+    renderStudentOverviewSearchDropdown();
   });
-  $("#clearStudentOverviewSearch")?.addEventListener("click",()=>{state.studentOverviewSearch="";saveState();render();});
-  document.querySelectorAll("[data-school-toggle]").forEach(btn=>btn.addEventListener("click",()=>{
-    const id=btn.dataset.schoolToggle;
-    state.studentOverviewOpenSchools[id]=!state.studentOverviewOpenSchools[id];
-    saveState();render();
-  }));
+
+  $("#studentOverviewSearch")?.addEventListener("focus",()=>{
+    renderStudentOverviewSearchDropdown();
+  });
+
+  $("#clearStudentOverviewSearch")?.addEventListener("click",()=>{
+    state.studentOverviewSearch="";
+    saveState();
+    render();
+  });
   document.querySelectorAll("[data-section-toggle]").forEach(btn=>btn.addEventListener("click",()=>{
     const key=btn.dataset.sectionToggle;
     state.studentOverviewOpenSections[key]=!state.studentOverviewOpenSections[key];
@@ -10359,15 +10840,81 @@ $("#audioAssignmentSearch").addEventListener("input",e=>renderAudioAssignmentRes
 
 $("#playlistAudioSearch").addEventListener("input",e=>renderPlaylistChoices(e.target.value));
 
-$("#playlistForm").addEventListener("submit",(e)=>{
+$("#playlistUploadAudioBtn").addEventListener("click",()=>{
+  $("#playlistNewAudioFiles").click();
+});
+
+$("#playlistNewAudioFiles").addEventListener("change",e=>{
+  const incoming=Array.from(e.target.files||[]);
+  if(!incoming.length) return;
+
+  // Append instead of replacing if the user selects files in more than one step.
+  const known=new Set(pendingPlaylistAudioFiles.map(f=>`${f.name}|${f.size}|${f.lastModified}`));
+  incoming.forEach(f=>{
+    const key=`${f.name}|${f.size}|${f.lastModified}`;
+    if(!known.has(key)){
+      pendingPlaylistAudioFiles.push(f);
+      known.add(key);
+    }
+  });
+
+  e.target.value="";
+  renderPendingPlaylistAudioFiles();
+});
+
+$("#playlistForm").addEventListener("submit",async(e)=>{
   e.preventDefault();
+
   const name=$("#playlistName").value.trim();
-  if(!name){alert("Bitte einen Playlistnamen eingeben.");return;}
-  const ids=Array.from(document.querySelectorAll(".playlist-audio-check:checked")).map(x=>x.dataset.id);
-  state.playlists.push({id:nextPlaylistId(),name,audioIds:ids,createdAt:new Date().toISOString()});
-  saveState();
-  $("#playlistDialog").close();
-  render();
+  if(!name){
+    alert("Bitte einen Playlistnamen eingeben.");
+    return;
+  }
+
+  const existingIds=Array.from(
+    document.querySelectorAll(".playlist-audio-check:checked")
+  ).map(x=>x.dataset.id);
+
+  const saveBtn=$("#playlistSaveBtn");
+  const oldText=saveBtn.textContent;
+
+  try{
+    saveBtn.disabled=true;
+    saveBtn.textContent=pendingPlaylistAudioFiles.length
+      ? "Audios werden gespeichert …"
+      : "Playlist wird gespeichert …";
+
+    // New files are first stored in the central audio library.
+    const created=pendingPlaylistAudioFiles.length
+      ? await addAudioFilesToLibrary(pendingPlaylistAudioFiles)
+      : [];
+
+    // Then their IDs are added to this playlist together with selected existing audios.
+    const ids=[
+      ...existingIds,
+      ...created.map(a=>a.id)
+    ];
+
+    state.playlists.push({
+      id:nextPlaylistId(),
+      name,
+      audioIds:[...new Set(ids)],
+      createdAt:new Date().toISOString()
+    });
+
+    pendingPlaylistAudioFiles=[];
+    saveState();
+    $("#playlistDialog").close();
+
+    state.audioSectionView="playlists";
+    render();
+  }catch(err){
+    console.error(err);
+    alert("Playlist oder Audiodateien konnten nicht gespeichert werden.");
+  }finally{
+    saveBtn.disabled=false;
+    saveBtn.textContent=oldText;
+  }
 });
 
 $("#addInstrumentationBtn").addEventListener("click",()=>{
@@ -12855,6 +13402,7 @@ function updateAccountButton(){
 }
 
 async function initTaktvollAuth(){
+  try{localStorage.removeItem("taktvoll_cloud_admin_token");}catch(_){}
   document.body.classList.add("auth-pending");
 
   if(!window.supabase?.createClient){
