@@ -4952,6 +4952,32 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.30 – Account bearbeiten */
+#accountEditDialog .sheet{
+  max-width:620px;
+}
+#accountEditDialog .card h3{
+  margin-top:0;
+}
+#accountEditMessage{
+  margin:0 0 12px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:#f3f3f5;
+  color:#55555d;
+  font-size:13px;
+  line-height:1.35;
+}
+#accountEditMessage.success{
+  background:#edf7ef;
+  color:#256a35;
+}
+#accountEditMessage.error{
+  background:#fff0ef;
+  color:#a52a20;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4964,7 +4990,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.29 – Stundenplan Einheit-Dialog mit fixer Kopf-/Fußzeile -->
+<!-- Taktvoll V0.26.30 – Account bearbeiten -->
 </head>
 <body>
   <div class="app">
@@ -5078,8 +5104,69 @@ input[type="number"]{
       </section>
 
       <div class="muted small" style="margin:4px 0 10px">Änderungen werden automatisch synchronisiert.</div>
-      <button type="button" class="secondary full" id="logoutBtn">Abmelden</button>
+      <button type="button" class="primary full" id="editAccountBtn">Account bearbeiten</button>
+      <button type="button" class="secondary full" id="logoutBtn" style="margin-top:8px">Abmelden</button>
     </div>
+  </dialog>
+
+  <dialog id="accountEditDialog">
+    <form method="dialog" class="sheet" id="accountEditForm">
+      <div class="sheet-handle"></div>
+      <div class="sheet-head">
+        <div>
+          <div class="eyebrow">TAKTVOLL-ACCOUNT</div>
+          <h2>Account bearbeiten</h2>
+        </div>
+        <button type="button" class="icon-btn" id="closeAccountEditDialogBtn">✕</button>
+      </div>
+
+      <section class="card">
+        <h3>Benutzername</h3>
+        <label class="small muted">Benutzername</label>
+        <input id="accountEditUsername"
+               type="text"
+               autocomplete="username"
+               placeholder="Benutzername">
+        <div class="muted small" style="margin-top:6px">
+          Mit diesem Benutzernamen kannst du dich weiterhin anstelle deiner E-Mail-Adresse anmelden.
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>E-Mail-Adresse</h3>
+        <label class="small muted">E-Mail-Adresse</label>
+        <input id="accountEditEmail"
+               type="email"
+               autocomplete="email"
+               placeholder="name@beispiel.at">
+        <div class="muted small" style="margin-top:6px">
+          Bei einer Änderung kann eine Bestätigung über die bisherige und/oder neue E-Mail-Adresse erforderlich sein.
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Passwort ändern</h3>
+        <label class="small muted">Neues Passwort</label>
+        <input id="accountEditPassword"
+               type="password"
+               autocomplete="new-password"
+               placeholder="Leer lassen, wenn unverändert">
+        <div style="height:10px"></div>
+        <label class="small muted">Neues Passwort wiederholen</label>
+        <input id="accountEditPasswordRepeat"
+               type="password"
+               autocomplete="new-password"
+               placeholder="Passwort wiederholen">
+        <div class="muted small" style="margin-top:6px">
+          Wenn du dein Passwort nicht ändern möchtest, lass beide Passwortfelder leer.
+        </div>
+      </section>
+
+      <div id="accountEditMessage" class="auth-message" style="display:none"></div>
+      <button class="primary full" type="submit" value="default" id="saveAccountChangesBtn">
+        Änderungen speichern
+      </button>
+    </form>
   </dialog>
 
   <dialog id="migrationDialog">
@@ -13874,6 +13961,162 @@ async function requestPasswordReset(){
   }
 }
 
+
+function setAccountEditMessage(message="",type=""){
+  const box=$("#accountEditMessage");
+  if(!box) return;
+  box.textContent=message;
+  box.className=`auth-message ${type||""}`;
+  box.style.display=message?"block":"none";
+}
+
+async function openAccountEditDialog(){
+  if(!taktvollAuthSession?.user){
+    showAuthDialog();
+    return;
+  }
+
+  const profile=await loadProfile();
+  $("#accountEditUsername").value=profile?.username||taktvollAuthSession.user.user_metadata?.username||"";
+  $("#accountEditEmail").value=taktvollAuthSession.user.email||profile?.email||"";
+  $("#accountEditPassword").value="";
+  $("#accountEditPasswordRepeat").value="";
+  setAccountEditMessage("");
+
+  $("#accountDialog").close();
+  if(!$("#accountEditDialog").open) $("#accountEditDialog").showModal();
+}
+
+async function syncProfileEmailFromAuthUser(user){
+  if(!taktvollSupabase || !user?.id || !user?.email) return;
+  const {error}=await taktvollSupabase
+    .from("profiles")
+    .update({
+      email:user.email,
+      updated_at:new Date().toISOString()
+    })
+    .eq("id",user.id);
+
+  if(error) console.warn("Profil-E-Mail konnte nicht synchronisiert werden",error);
+}
+
+async function saveAccountChanges(event){
+  event.preventDefault();
+
+  if(!taktvollSupabase || !taktvollAuthSession?.user){
+    setAccountEditMessage("Bitte melde dich erneut an.","error");
+    return;
+  }
+
+  const username=$("#accountEditUsername").value.trim();
+  const email=$("#accountEditEmail").value.trim().toLowerCase();
+  const password=$("#accountEditPassword").value;
+  const passwordRepeat=$("#accountEditPasswordRepeat").value;
+  const currentEmail=String(taktvollAuthSession.user.email||"").toLowerCase();
+
+  if(!username){
+    setAccountEditMessage("Bitte einen Benutzernamen eingeben.","error");
+    return;
+  }
+  if(!email || !email.includes("@")){
+    setAccountEditMessage("Bitte eine gültige E-Mail-Adresse eingeben.","error");
+    return;
+  }
+  if(password || passwordRepeat){
+    if(password.length<6){
+      setAccountEditMessage("Das neue Passwort muss mindestens 6 Zeichen lang sein.","error");
+      return;
+    }
+    if(password!==passwordRepeat){
+      setAccountEditMessage("Die beiden Passwörter stimmen nicht überein.","error");
+      return;
+    }
+  }
+
+  const saveBtn=$("#saveAccountChangesBtn");
+  saveBtn.disabled=true;
+  setAccountEditMessage("Änderungen werden gespeichert …");
+
+  try{
+    const profile=await loadProfile();
+    const currentUsername=String(profile?.username||"").trim();
+
+    if(username!==currentUsername){
+      const {error:profileError}=await taktvollSupabase
+        .from("profiles")
+        .update({
+          username,
+          updated_at:new Date().toISOString()
+        })
+        .eq("id",taktvollAuthSession.user.id);
+
+      if(profileError) throw profileError;
+
+      const {error:metaError}=await taktvollSupabase.auth.updateUser({
+        data:{
+          ...(taktvollAuthSession.user.user_metadata||{}),
+          username
+        }
+      });
+      if(metaError) throw metaError;
+    }
+
+    let emailChangeRequested=false;
+    if(email!==currentEmail){
+      const {error:emailError}=await taktvollSupabase.auth.updateUser({
+        email
+      });
+      if(emailError) throw emailError;
+      emailChangeRequested=true;
+    }
+
+    if(password){
+      const {error:passwordError}=await taktvollSupabase.auth.updateUser({
+        password
+      });
+      if(passwordError) throw passwordError;
+    }
+
+    const {data:{session}}=await taktvollSupabase.auth.getSession();
+    if(session) taktvollAuthSession=session;
+
+    await syncProfileEmailFromAuthUser(taktvollAuthSession?.user);
+
+    $("#accountEditPassword").value="";
+    $("#accountEditPasswordRepeat").value="";
+
+    if(emailChangeRequested){
+      setAccountEditMessage(
+        "Gespeichert. Bitte bestätige die Änderung deiner E-Mail-Adresse über die E-Mail(s) von Taktvoll/Supabase. Benutzername und Passwort wurden bereits aktualisiert.",
+        "success"
+      );
+    }else{
+      setAccountEditMessage("Deine Account-Daten wurden gespeichert.","success");
+    }
+
+    setTimeout(async()=>{
+      if($("#accountEditDialog").open) $("#accountEditDialog").close();
+      await openAccountDialog();
+    }, emailChangeRequested?2600:900);
+
+  }catch(err){
+    console.error("Account konnte nicht aktualisiert werden",err);
+    let message=err?.message||String(err);
+
+    if(/duplicate key|username/i.test(message)){
+      message="Dieser Benutzername ist bereits vergeben.";
+    }else if(/email.*registered|user already registered/i.test(message)){
+      message="Diese E-Mail-Adresse wird bereits von einem anderen Account verwendet.";
+    }else if(/reauthentication/i.test(message)){
+      message="Aus Sicherheitsgründen musst du dich erneut anmelden, bevor das Passwort geändert werden kann.";
+    }
+
+    setAccountEditMessage(message,"error");
+  }finally{
+    saveBtn.disabled=false;
+  }
+}
+
 async function openAccountDialog(){
   if(!taktvollAuthSession){
     showAuthDialog();
@@ -13942,6 +14185,10 @@ async function initTaktvollAuth(){
       return;
     }
 
+    if(event==="USER_UPDATED" && session?.user){
+      syncProfileEmailFromAuthUser(session.user);
+    }
+
     updateAccountButton();
   });
 
@@ -13973,6 +14220,12 @@ $("#continueLocalBtn").addEventListener("click",()=>{
 });
 $("#accountBtn").addEventListener("click",openAccountDialog);
 $("#closeAccountDialogBtn").addEventListener("click",()=>$("#accountDialog").close());
+$("#editAccountBtn").addEventListener("click",openAccountEditDialog);
+$("#closeAccountEditDialogBtn").addEventListener("click",()=>{
+  $("#accountEditDialog").close();
+  openAccountDialog();
+});
+$("#accountEditForm").addEventListener("submit",saveAccountChanges);
 $("#logoutBtn").addEventListener("click",logoutTaktvoll);
 
 $("#migrationImportBtn").addEventListener("click",async()=>{
