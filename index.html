@@ -4807,6 +4807,43 @@ textarea{
   font-size:13px;
 }
 
+
+/* V0.26.27 – iPhone/Safari: kein automatisches Hineinzoomen bei Eingabefeldern */
+/*
+  iOS Safari zoomt Eingabefelder automatisch, wenn deren berechnete
+  Schriftgröße kleiner als 16px ist. Deshalb bleiben alle editierbaren
+  Formularelemente mindestens auf 16px.
+*/
+input,
+textarea,
+select,
+input[type="search"],
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="time"],
+input[type="date"],
+input[type="number"]{
+  font-size:16px !important;
+}
+
+/* Auch die speziell kompakt gestalteten Suchfelder dürfen auf iOS nicht kleiner werden. */
+.school-section-inner-search input,
+.student-overview-search input,
+.event-participant-search-wrap input,
+.audio-section-search-wrap input,
+.search-wrap input,
+#playlistAudioSearch,
+#audioMultiSearch,
+#librarySearch{
+  font-size:16px !important;
+}
+
+/* Suchfelder behalten ihre kompakte Optik über Höhe/Padding statt über kleinere Schrift. */
+.school-section-inner-search input{
+  min-height:40px !important;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4819,7 +4856,7 @@ textarea{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.26 – Vorschlagssuche in geöffneten Listen -->
+<!-- Taktvoll V0.26.27 – iPhone Eingabefelder ohne Auto-Zoom -->
 </head>
 <body>
   <div class="app">
