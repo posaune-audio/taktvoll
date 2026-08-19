@@ -5332,354 +5332,90 @@ input[type="number"]{
 }
 
 
-/* V0.26.35 – Anwesenheitsdialog: Dialog selbst fix, nur Textfelder scrollen */
-#lessonDialog{
-  overflow:hidden !important;
-  padding:0 !important;
-}
-#lessonDialog[open]{
-  display:flex !important;
-  align-items:flex-end;
-  justify-content:center;
-}
-#lessonDialog > form.sheet{
-  width:min(100%,680px);
-  height:min(92dvh,820px);
-  max-height:min(92dvh,820px);
-  overflow:hidden !important;
-  display:flex !important;
-  flex-direction:column;
-}
-#lessonDialog .sheet-handle,
-#lessonDialog .sheet-head{
-  flex:0 0 auto;
-}
-#lessonDialog > form.sheet > section.card{
-  flex:0 0 auto;
-  margin-bottom:8px;
-}
-#lessonDialog > form.sheet > button.primary.full{
-  flex:0 0 auto;
-  margin-top:auto;
-}
-#lessonDialog textarea{
-  overflow-y:auto !important;
-  -webkit-overflow-scrolling:touch;
-  resize:none;
-}
-#lessonContent{
-  max-height:150px;
-}
-#homework{
-  max-height:100px;
-}
-
-/* Inhalte etwas kompakter, damit alles auf einer Seite bleibt */
-#lessonDialog .sheet{
-  padding-top:6px;
-}
-#lessonDialog .sheet-head{
-  margin-bottom:4px;
-}
-#lessonDialog .card{
-  padding-top:10px;
-  padding-bottom:10px;
-}
-#lessonDialog .card h3{
-  margin-top:0;
-  margin-bottom:7px;
-}
-#lessonDialog #statusGroup{
-  margin-bottom:0;
-}
-#lessonDialog #statusExtra{
-  margin-top:0;
-}
-#lessonDialog #lessonContent{
-  min-height:92px;
-}
-#lessonDialog #homework{
-  min-height:68px;
-}
-
-/* Gleiches Prinzip beim Ergänzungsfach-Unterricht */
-#ensembleDialog{
-  overflow:hidden !important;
-  padding:0 !important;
-}
-#ensembleDialog[open]{
-  display:flex !important;
-  align-items:flex-end;
-  justify-content:center;
-}
-#ensembleDialog > form.sheet{
-  width:min(100%,680px);
-  height:min(92dvh,820px);
-  max-height:min(92dvh,820px);
-  overflow:hidden !important;
-  display:flex !important;
-  flex-direction:column;
-}
-#ensembleDialog .sheet-handle,
-#ensembleDialog .sheet-head{
-  flex:0 0 auto;
-}
-#ensembleDialog > form.sheet > section.card{
-  flex:0 0 auto;
-  margin-bottom:8px;
-}
-#ensembleDialog > form.sheet > button.primary.full{
-  flex:0 0 auto;
-  margin-top:auto;
-}
-#ensembleDialog textarea{
-  overflow-y:auto !important;
-  -webkit-overflow-scrolling:touch;
-  resize:none;
-}
-#ensembleContent{
-  max-height:140px;
-}
-#ensembleDialog .card{
-  padding-top:10px;
-  padding-bottom:10px;
-}
-#ensembleDialog .card h3{
-  margin-top:0;
-  margin-bottom:7px;
-}
-
-/* Kleine iPhones: fast volle Höhe, ohne dass der Dialog selbst scrollt */
-@media(max-height:700px){
-  #lessonDialog > form.sheet,
-  #ensembleDialog > form.sheet{
-    height:96dvh;
-    max-height:96dvh;
-  }
-  #lessonContent{
-    max-height:120px;
-    min-height:80px;
-  }
-  #homework{
-    max-height:82px;
-    min-height:58px;
-  }
-  #ensembleContent{
-    max-height:115px;
-  }
-}
-
-
-/* V0.26.36 – Anwesenheit als echte Vollbild-Unterrichtsseite */
-html.lesson-page-open,
-body.lesson-page-open{
-  overflow:hidden !important;
-  overscroll-behavior:none !important;
-  height:100% !important;
-  touch-action:none;
-}
-
-/* Dialog deckt die komplette App ab. */
+/* V0.26.37 – Anwesenheit wieder scrollbar, Speichern unten fix */
 #lessonDialog,
 #ensembleDialog{
-  position:fixed !important;
-  inset:0 !important;
-  width:100vw !important;
-  max-width:none !important;
-  height:100dvh !important;
-  max-height:none !important;
-  margin:0 !important;
-  padding:0 !important;
-  border:0 !important;
-  border-radius:0 !important;
   overflow:hidden !important;
-  background:#f7f7f8 !important;
 }
-#lessonDialog::backdrop,
-#ensembleDialog::backdrop{
-  background:#f7f7f8 !important;
-  opacity:1 !important;
-}
-#lessonDialog[open],
-#ensembleDialog[open]{
-  display:block !important;
-}
-
-/* Die Unterrichtsmaske selbst ist eine eigene Seite. */
 #lessonDialog > form.sheet,
 #ensembleDialog > form.sheet{
-  position:absolute !important;
-  inset:0 !important;
-  width:100% !important;
-  max-width:none !important;
-  height:100% !important;
-  max-height:none !important;
-  margin:0 !important;
-  padding:
-    max(8px,env(safe-area-inset-top))
-    14px
-    max(10px,env(safe-area-inset-bottom)) !important;
-  border-radius:0 !important;
-  box-shadow:none !important;
-  overflow:hidden !important;
-  display:flex !important;
-  flex-direction:column !important;
-  gap:6px;
-  background:#f7f7f8 !important;
-  touch-action:manipulation;
-}
-
-/* Auf der Vollbildseite ist kein Sheet-Henkel nötig. */
-#lessonDialog .sheet-handle,
-#ensembleDialog .sheet-handle{
-  display:none !important;
-}
-
-#lessonDialog .sheet-head,
-#ensembleDialog .sheet-head{
-  flex:0 0 auto !important;
-  min-height:48px;
-  margin:0 0 2px !important;
-  padding:0 !important;
-}
-
-/* Alle Karten kompakt genug, damit die Maske ohne Seitenscroll auskommt. */
-#lessonDialog > form.sheet > section.card,
-#ensembleDialog > form.sheet > section.card{
-  flex:0 0 auto !important;
-  min-height:0 !important;
-  margin:0 !important;
-  padding:8px 10px !important;
-  overflow:hidden !important;
-}
-#lessonDialog .card h3,
-#ensembleDialog .card h3{
-  margin:0 0 5px !important;
-  font-size:15px;
-}
-#lessonDialog .muted,
-#ensembleDialog .muted{
-  line-height:1.25;
-}
-#lessonDialog #lastLesson{
-  margin:0;
-  max-height:42px;
-  overflow:hidden;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-}
-
-/* Status kompakt halten. */
-#lessonDialog #statusGroup,
-#ensembleDialog #ensembleStatusGroup{
-  min-height:36px;
-}
-#lessonDialog #statusGroup button,
-#ensembleDialog #ensembleStatusGroup button{
-  min-height:36px;
-  padding:6px 7px;
-  font-size:12px;
-}
-#lessonDialog #statusExtra,
-#ensembleDialog #ensembleStatusExtra{
-  flex:0 0 auto;
-}
-
-/* Nur Textfelder dürfen in sich scrollen. */
-#lessonDialog textarea,
-#ensembleDialog textarea{
-  touch-action:pan-y !important;
+  max-height:90dvh !important;
   overflow-y:auto !important;
-  overscroll-behavior:contain !important;
+  overflow-x:hidden !important;
   -webkit-overflow-scrolling:touch !important;
-  resize:none !important;
+  overscroll-behavior:contain;
+  padding-bottom:78px !important;
+  position:relative;
 }
-#lessonContent{
-  height:92px !important;
-  min-height:92px !important;
-  max-height:92px !important;
-}
-#homework{
-  height:62px !important;
-  min-height:62px !important;
-  max-height:62px !important;
-}
-#ensembleContent{
-  height:84px !important;
-  min-height:84px !important;
-  max-height:84px !important;
-}
-
-/* Unterrichtsstoff-Karte darf Restplatz bei größeren Displays nutzen,
-   ohne dass die Seite selbst scrollt. */
-#lessonDialog > form.sheet > section.card:has(#lessonContent){
-  flex:1 1 auto !important;
-  min-height:112px !important;
-  display:flex !important;
-  flex-direction:column;
-}
-#lessonDialog > form.sheet > section.card:has(#lessonContent) #lessonContent{
-  flex:1 1 auto !important;
-  height:auto !important;
-  min-height:72px !important;
-  max-height:150px !important;
-}
-
-/* Speichern ist immer unten sichtbar. */
 #lessonDialog > form.sheet > button.primary.full,
 #ensembleDialog > form.sheet > button.primary.full{
+  position:sticky !important;
+  bottom:0 !important;
+  z-index:20 !important;
   flex:0 0 auto !important;
-  margin-top:auto !important;
-  min-height:46px;
-  position:relative;
-  z-index:10;
+  margin-top:10px !important;
+  box-shadow:0 -10px 18px rgba(248,248,249,.96);
 }
-
-/* Ergänzungsfach: Mitgliederliste bekommt bei Bedarf die einzige zusätzliche
-   innere Scrollfläche, damit der Hintergrund niemals bewegt wird. */
-#ensembleDialog #ensembleMembers{
-  max-height:104px;
+#lessonDialog textarea,
+#ensembleDialog textarea{
   overflow-y:auto !important;
-  overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
-  touch-action:pan-y !important;
 }
 
-/* Kleine iPhones: noch kompakter, weiterhin ohne Seiten-/Hintergrundscroll. */
-@media(max-height:700px){
-  #lessonDialog > form.sheet,
-  #ensembleDialog > form.sheet{
-    gap:4px;
-    padding:
-      max(5px,env(safe-area-inset-top))
-      10px
-      max(7px,env(safe-area-inset-bottom)) !important;
-  }
-  #lessonDialog > form.sheet > section.card,
-  #ensembleDialog > form.sheet > section.card{
-    padding:6px 8px !important;
-  }
-  #lessonDialog .sheet-head,
-  #ensembleDialog .sheet-head{
-    min-height:42px;
-  }
-  #lessonContent{
-    min-height:62px !important;
-  }
-  #homework{
-    height:52px !important;
-    min-height:52px !important;
-    max-height:52px !important;
-  }
-  #ensembleContent{
-    height:64px !important;
-    min-height:64px !important;
-    max-height:64px !important;
-  }
-  #ensembleDialog #ensembleMembers{
-    max-height:82px;
-  }
+/* Ergänzungsfach-Mitglieder verwalten */
+.supplementary-member-add-panel{
+  margin:8px 0 12px;
+  padding:10px;
+  border:1px solid #e5e5e9;
+  border-radius:14px;
+  background:#f8f8f9;
+}
+.supplementary-member-add-panel[hidden],
+#ensembleExistingMemberFields[hidden],
+#ensembleExternalMemberFields[hidden]{
+  display:none !important;
+}
+#ensembleExistingMemberFields,
+#ensembleExternalMemberFields{
+  margin-top:9px;
+}
+.supplementary-member-choice-list{
+  max-height:220px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  margin-top:7px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.supplementary-student-choice{
+  width:100%;
+  border:1px solid #e4e4e8;
+  background:#fff;
+  border-radius:12px;
+  padding:9px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  text-align:left;
+  color:#111;
+}
+.supplementary-student-choice span:first-child{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.supplementary-student-choice small{
+  color:#777780;
+}
+.supplementary-student-choice.selected{
+  opacity:.65;
+}
+.supplementary-member-copy{
+  flex:1 1 auto;
+  min-width:0;
 }
 
 </style>
@@ -5694,7 +5430,7 @@ body.lesson-page-open{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.36 – Anwesenheit als gesperrte Vollbild-Unterrichtsseite -->
+<!-- Taktvoll V0.26.37 – Anwesenheit scrollbar mit fixem Speichern + externe Ergänzungsfach-Mitglieder -->
 </head>
 <body>
   <div class="app">
@@ -7008,6 +6744,26 @@ body.lesson-page-open{
           <h3>Mitglieder</h3>
           <button type="button" class="secondary" id="addMemberBtn">+ Mitglied</button>
         </div>
+        <div id="ensembleMemberAddPanel" class="supplementary-member-add-panel" hidden>
+          <div class="segmented" id="ensembleMemberAddMode">
+            <button type="button" class="selected" data-member-mode="existing">Bestehender Schüler</button>
+            <button type="button" data-member-mode="external">Neues Mitglied</button>
+          </div>
+
+          <div id="ensembleExistingMemberFields">
+            <input id="ensembleMemberSearch" type="search" placeholder="Schüler suchen …" autocomplete="off">
+            <div id="ensembleMemberStudentChoices" class="supplementary-member-choice-list"></div>
+          </div>
+
+          <div id="ensembleExternalMemberFields" hidden>
+            <input id="ensembleExternalMemberName" placeholder="Vor- und Nachname">
+            <div class="muted small" style="margin-top:6px">
+              Dieses Mitglied gehört nur zu diesem Ergänzungsfach und wird nicht in der Schülerliste angelegt.
+            </div>
+            <button type="button" class="secondary full" id="saveExternalMemberBtn" style="margin-top:8px">Mitglied hinzufügen</button>
+          </div>
+        </div>
+
         <div id="ensembleEditMembers" class="fixed-dialog-scroll-region supplementary-member-scroll-region"></div>
       </section>
 
@@ -8000,7 +7756,13 @@ function loadState(){
       last:"",
       weekday:"",
       time:"",
-      ...s
+      ...s,
+      members:Array.isArray(s.members) ? s.members.map(m=>({
+        name:String(m?.name||"Mitglied"),
+        present:m?.present!==false,
+        studentId:m?.studentId ?? null,
+        memberType:m?.memberType || (m?.studentId!=null ? "student" : "external")
+      })) : []
     }));
 
     if(saved.calendars) state.calendars=saved.calendars;
@@ -11293,6 +11055,9 @@ function openSupplementaryEditor(id=null){
   };
 
   renderSupplementaryEditMembers();
+  $("#ensembleMemberAddPanel").hidden=true;
+  $("#ensembleMemberSearch").value="";
+  $("#ensembleExternalMemberName").value="";
   updateSupplementaryTypeHint();
 
   $("#deleteSupplementaryBtn").style.display=id===null ? "none" : "block";
@@ -11307,38 +11072,89 @@ function renderSupplementaryEditMembers(){
   const members=editingSupplementaryDraft.members||[];
 
   box.innerHTML=members.length
-    ? members.map((m,i)=>`
-        <div class="supplementary-member-edit-row">
-          <input class="member-name-input"
-                 data-i="${i}"
-                 value="${String(m.name||"").replace(/"/g,"&quot;")}"
-                 placeholder="Name des Mitglieds">
-          <button type="button"
-                  class="secondary remove-supplementary-member-btn"
-                  data-i="${i}">
-            Entfernen
-          </button>
-        </div>
-      `).join("")
+    ? members.map((m,i)=>{
+        const linked=m.studentId!=null ? state.students.find(s=>String(s.id)===String(m.studentId)) : null;
+        const displayName=linked ? studentDisplayName(linked) : String(m.name||"Mitglied");
+        if(linked) m.name=displayName;
+        return `
+          <div class="supplementary-member-edit-row">
+            <div class="supplementary-member-copy">
+              <div class="bold">${displayName}</div>
+              <div class="muted small">${linked ? `Bestehender Schüler${linked.instrument?` · ${linked.instrument}`:""}` : "Externes Mitglied · nur in diesem Ergänzungsfach"}</div>
+            </div>
+            <button type="button"
+                    class="secondary remove-supplementary-member-btn"
+                    data-i="${i}">
+              Entfernen
+            </button>
+          </div>`;
+      }).join("")
     : `<div class="muted small supplementary-no-members">
-         Noch keine Mitglieder. Du kannst das Ergänzungsfach auch ohne Mitglieder anlegen.
+         Noch keine Mitglieder. Du kannst bestehende Schüler auswählen oder externe Mitglieder hinzufügen.
        </div>`;
-
-  box.querySelectorAll(".member-name-input").forEach(inp=>{
-    inp.addEventListener("input",()=>{
-      const i=Number(inp.dataset.i);
-      if(editingSupplementaryDraft.members[i]){
-        editingSupplementaryDraft.members[i].name=inp.value;
-      }
-    });
-  });
 
   box.querySelectorAll(".remove-supplementary-member-btn").forEach(btn=>{
     btn.addEventListener("click",()=>{
       editingSupplementaryDraft.members.splice(Number(btn.dataset.i),1);
       renderSupplementaryEditMembers();
+      renderSupplementaryStudentChoices();
     });
   });
+}
+
+function renderSupplementaryStudentChoices(){
+  const box=$("#ensembleMemberStudentChoices");
+  if(!box || !editingSupplementaryDraft) return;
+  const q=String($("#ensembleMemberSearch")?.value||"").trim().toLocaleLowerCase("de");
+  const selectedIds=new Set((editingSupplementaryDraft.members||[])
+    .filter(m=>m.studentId!=null)
+    .map(m=>String(m.studentId)));
+
+  const students=[...(state.students||[])]
+    .sort(alphaByName)
+    .filter(s=>{
+      if(!q) return true;
+      return [studentDisplayName(s),s.firstName,s.lastName,s.instrument,state.schools?.[s.school]?.name,s.location]
+        .filter(Boolean).join(" ").toLocaleLowerCase("de").includes(q);
+    });
+
+  box.innerHTML=students.length ? students.map(s=>{
+    const selected=selectedIds.has(String(s.id));
+    return `<button type="button" class="supplementary-student-choice ${selected?"selected":""}" data-student-id="${s.id}" ${selected?"disabled":""}>
+      <span><strong>${studentDisplayName(s)}</strong><small>${[s.instrument,state.schools?.[s.school]?.name].filter(Boolean).join(" · ")}</small></span>
+      <span>${selected?"✓ Hinzugefügt":"+ Hinzufügen"}</span>
+    </button>`;
+  }).join("") : `<div class="muted small" style="padding:10px 2px">Keine passenden Schüler gefunden.</div>`;
+
+  box.querySelectorAll(".supplementary-student-choice:not([disabled])").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const s=state.students.find(x=>String(x.id)===String(btn.dataset.studentId));
+      if(!s) return;
+      editingSupplementaryDraft.members.push({
+        name:studentDisplayName(s),
+        studentId:s.id,
+        memberType:"student",
+        present:true
+      });
+      renderSupplementaryEditMembers();
+      renderSupplementaryStudentChoices();
+    });
+  });
+}
+
+function setSupplementaryMemberAddMode(mode){
+  const actual=mode==="external"?"external":"existing";
+  document.querySelectorAll("#ensembleMemberAddMode button").forEach(btn=>{
+    btn.classList.toggle("selected",btn.dataset.memberMode===actual);
+  });
+  $("#ensembleExistingMemberFields").hidden=actual!=="existing";
+  $("#ensembleExternalMemberFields").hidden=actual!=="external";
+  if(actual==="existing"){
+    renderSupplementaryStudentChoices();
+    setTimeout(()=>$("#ensembleMemberSearch")?.focus(),0);
+  }else{
+    setTimeout(()=>$("#ensembleExternalMemberName")?.focus(),0);
+  }
 }
 
 function openEnsembleEditor(){
@@ -11747,28 +11563,6 @@ function selectStatus(status){
   }
 }
 
-
-function lockTaktvollLessonPage(){
-  document.documentElement.classList.add("lesson-page-open");
-  document.body.classList.add("lesson-page-open");
-}
-
-function unlockTaktvollLessonPage(){
-  document.documentElement.classList.remove("lesson-page-open");
-  document.body.classList.remove("lesson-page-open");
-}
-
-function openLessonPageDialog(dialog){
-  if(!dialog) return;
-  lockTaktvollLessonPage();
-  if(!dialog.open) dialog.showModal();
-}
-
-function closeLessonPageDialog(dialog){
-  if(dialog?.open) dialog.close();
-  unlockTaktvollLessonPage();
-}
-
 function openLesson(id){
   const s=state.students.find(x=>String(x.id)===String(id));
   if(!s) return;
@@ -11792,23 +11586,8 @@ function openLesson(id){
   $("#homework").value="";
 
   selectStatus("held");
-  openLessonPageDialog($("#lessonDialog"));
+  $("#lessonDialog").showModal();
 }
-
-
-["lessonDialog","ensembleDialog"].forEach(id=>{
-  const dlg=document.getElementById(id);
-  dlg?.addEventListener("close",()=>{
-    if(!$("#lessonDialog")?.open && !$("#ensembleDialog")?.open){
-      unlockTaktvollLessonPage();
-    }
-  });
-  dlg?.addEventListener("cancel",e=>{
-    e.preventDefault();
-    closeLessonPageDialog(dlg);
-    state.currentLesson=null;
-  });
-});
 
 /* Status-Tasten der Stundeneintragung sind statisch und werden einmal verbunden. */
 document.querySelectorAll("#statusGroup button").forEach(btn=>{
@@ -11854,7 +11633,6 @@ $("#lessonForm").onsubmit=(e)=>{
   const next=nextDayItem(finished.school,finished.id,"student");
 
   state.currentLesson=null;
-  closeLessonPageDialog($("#lessonDialog"));
 
   setTimeout(()=>{
     render();
@@ -11878,11 +11656,7 @@ function bindViewEvents(){
 
   document.querySelectorAll(".dialog-close-btn").forEach(btn=>btn.addEventListener("click",()=>{
     const dlg=btn.closest("dialog");
-    if(dlg?.id==="lessonDialog" || dlg?.id==="ensembleDialog"){
-      closeLessonPageDialog(dlg);
-    }else if(dlg && dlg.open){
-      dlg.close();
-    }
+    if(dlg && dlg.open) dlg.close();
     if(dlg?.id==="studentEditDialog") editingStudentId=null;
     if(dlg?.id==="playlistDialog"){
       pendingPlaylistAudioFiles=[];
@@ -12428,7 +12202,7 @@ function openSupplementaryLesson(id){
   selectEnsembleStatus("held");
   renderSupplementaryMembers(e);
   configureIrregularBlockUI(e);
-  openLessonPageDialog($("#ensembleDialog"));
+  $("#ensembleDialog").showModal();
 }
 function renderSupplementaryMembers(subject){
   const box=$("#ensembleMembers");
@@ -13086,16 +12860,32 @@ $("#editEnsembleSchool").addEventListener("change",()=>setTimeout(updateSuppleme
 
 $("#addMemberBtn").addEventListener("click",()=>{
   if(!editingSupplementaryDraft) return;
+  const panel=$("#ensembleMemberAddPanel");
+  panel.hidden=!panel.hidden;
+  if(!panel.hidden) setSupplementaryMemberAddMode("existing");
+});
 
+document.querySelectorAll("#ensembleMemberAddMode button").forEach(btn=>{
+  btn.addEventListener("click",()=>setSupplementaryMemberAddMode(btn.dataset.memberMode));
+});
+
+$("#ensembleMemberSearch").addEventListener("input",renderSupplementaryStudentChoices);
+
+$("#saveExternalMemberBtn").addEventListener("click",()=>{
+  if(!editingSupplementaryDraft) return;
+  const name=$("#ensembleExternalMemberName").value.trim();
+  if(!name){
+    alert("Bitte einen Namen für das neue Mitglied eingeben.");
+    return;
+  }
   editingSupplementaryDraft.members.push({
-    name:"",
+    name,
+    studentId:null,
+    memberType:"external",
     present:true
   });
-
+  $("#ensembleExternalMemberName").value="";
   renderSupplementaryEditMembers();
-
-  const inputs=document.querySelectorAll("#ensembleEditMembers .member-name-input");
-  inputs[inputs.length-1]?.focus();
 });
 
 $("#ensembleEditForm").addEventListener("submit",(ev)=>{
