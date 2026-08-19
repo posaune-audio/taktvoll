@@ -5117,6 +5117,168 @@ input[type="number"]{
   white-space:nowrap;
 }
 
+
+/* V0.26.33 – robuste fixe Auswahlfenster auf iPhone/iPad
+   Drei Zonen: Kopf fix / Liste scrollt / Aktionsbutton fix */
+.fixed-selection-dialog{
+  overflow:hidden !important;
+  padding:0 !important;
+}
+.fixed-selection-dialog[open]{
+  display:flex !important;
+  align-items:flex-end;
+  justify-content:center;
+}
+.fixed-selection-dialog > .sheet,
+.fixed-selection-dialog > form.sheet{
+  width:min(100%,680px);
+  height:min(88dvh,760px);
+  max-height:min(88dvh,760px);
+  min-height:0;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column;
+}
+.fixed-selection-dialog .sheet-handle,
+.fixed-selection-dialog .sheet-head{
+  flex:0 0 auto !important;
+}
+.fixed-selection-dialog > .sheet > section.card,
+.fixed-selection-dialog > form.sheet > section.card{
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column;
+}
+.fixed-selection-dialog > .sheet > .primary.full,
+.fixed-selection-dialog > form.sheet > .primary.full{
+  flex:0 0 auto !important;
+  position:relative;
+  z-index:5;
+  margin-top:8px;
+}
+.fixed-dialog-scroll-region{
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:scroll !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+  overscroll-behavior-y:contain;
+  touch-action:pan-y !important;
+}
+
+/* Stundenplan → Einheit hinzufügen:
+   Steuerung möglichst kompakt oben, nur die Personenliste bewegt sich. */
+#plannerItemDialog > .sheet{
+  padding-top:6px;
+}
+#plannerItemDialog .sheet-head{
+  margin-bottom:4px;
+}
+#plannerItemDialog > .sheet > section.card{
+  padding-top:10px;
+  padding-bottom:8px;
+}
+#plannerItemDialog #plannerItemType{
+  flex:0 0 auto;
+  margin-bottom:0;
+}
+#plannerItemDialog #plannerEntityFields{
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column;
+  margin-top:8px !important;
+}
+#plannerItemDialog #plannerEntityFields > label,
+#plannerItemDialog .planner-entity-search,
+#plannerItemDialog .planner-assignment-legend{
+  flex:0 0 auto !important;
+}
+#plannerItemDialog .planner-entity-search{
+  margin:5px 0 6px;
+}
+#plannerItemDialog .planner-assignment-legend{
+  margin-bottom:5px;
+}
+#plannerItemDialog #plannerEntityList{
+  flex:1 1 0 !important;
+  min-height:120px !important;
+  height:0;
+  max-height:none !important;
+  overflow-y:scroll !important;
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:pan-y !important;
+}
+#plannerItemDialog #plannerCustomFields{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto !important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Plusstunden: Eingaben bleiben oben, ausschließlich Personenliste scrollt. */
+#newCreditDialog #creditEntityList{
+  flex:1 1 0 !important;
+  height:0;
+  min-height:120px !important;
+  max-height:none !important;
+  overflow-y:scroll !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+#newCreditDialog > .sheet > section.card{
+  min-height:0 !important;
+}
+
+/* Stundenverschiebung: Datum bleibt oben, ausschließlich Stundenliste scrollt. */
+#newShiftDialog #newShiftLessonList{
+  flex:1 1 0 !important;
+  height:0;
+  min-height:120px !important;
+  max-height:none !important;
+  overflow-y:scroll !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+#newShiftDialog > .sheet > section.card{
+  min-height:0 !important;
+}
+
+/* Scrollflächen optisch klar als eigenständige Listenfläche erkennbar. */
+#plannerEntityList,
+#creditEntityList,
+#newShiftLessonList{
+  border-top:1px solid #ececef;
+  border-bottom:1px solid #ececef;
+  padding-top:4px;
+  padding-bottom:4px;
+}
+
+/* Kleine Geräte: nahezu volle Displayhöhe, ohne Kopf/Fuß zu verlieren. */
+@media(max-height:700px){
+  .fixed-selection-dialog > .sheet,
+  .fixed-selection-dialog > form.sheet{
+    height:94dvh;
+    max-height:94dvh;
+  }
+  #plannerItemDialog #plannerEntityList,
+  #newCreditDialog #creditEntityList,
+  #newShiftDialog #newShiftLessonList{
+    min-height:90px !important;
+  }
+}
+
+/* Größere Geräte: etwas großzügigere mittlere Listenfläche. */
+@media(min-height:800px){
+  #plannerItemDialog #plannerEntityList,
+  #newCreditDialog #creditEntityList,
+  #newShiftDialog #newShiftLessonList{
+    min-height:180px !important;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5129,7 +5291,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.32 – Phantom-Ergänzungsfach / Legacy-Migration behoben -->
+<!-- Taktvoll V0.26.33 – fixe Auswahlfenster mit echter mittlerer Scrollfläche -->
 </head>
 <body>
   <div class="app">
