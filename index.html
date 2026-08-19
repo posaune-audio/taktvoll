@@ -4978,6 +4978,121 @@ input[type="number"]{
   color:#a52a20;
 }
 
+
+/* V0.26.31 – direkte Datumseingabe in der gesamten App */
+.taktvoll-date-entry{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:6px;
+  margin-top:2px;
+}
+.taktvoll-date-entry > input[type="date"],
+.taktvoll-date-entry > input[type="datetime-local"]{
+  width:100%;
+  margin:0;
+}
+.taktvoll-date-manual{
+  width:100%;
+  margin:0 !important;
+  font-size:16px !important;
+  letter-spacing:.01em;
+}
+.taktvoll-date-manual.date-invalid{
+  border-color:#b42318 !important;
+  box-shadow:0 0 0 1px #b42318 !important;
+}
+.taktvoll-date-hint{
+  color:#83838b;
+  font-size:11px;
+  line-height:1.25;
+}
+
+/* V0.26.31 – allgemeines Muster für Dialoge mit langen Auswahllisten */
+.fixed-selection-dialog{
+  overflow:hidden !important;
+  padding:0;
+}
+.fixed-selection-dialog[open]{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+.fixed-selection-dialog > .sheet,
+.fixed-selection-dialog > form.sheet{
+  width:min(100%,680px);
+  max-height:min(90dvh,780px);
+  overflow:hidden !important;
+  display:flex;
+  flex-direction:column;
+}
+.fixed-selection-dialog .sheet-handle,
+.fixed-selection-dialog .sheet-head{
+  flex:0 0 auto;
+}
+.fixed-selection-dialog > .sheet > section.card,
+.fixed-selection-dialog > form.sheet > section.card{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.fixed-selection-dialog > .sheet > .primary.full,
+.fixed-selection-dialog > form.sheet > .primary.full{
+  flex:0 0 auto;
+  margin-top:10px;
+}
+.fixed-dialog-scroll-region{
+  min-height:0;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
+}
+
+/* Plusstunden: Kopf + Datum/Anzahl + Speichern fix, nur Schülerliste scrollt. */
+#newCreditDialog #creditEntityList{
+  flex:1 1 auto;
+  max-height:none !important;
+  min-height:110px;
+}
+
+/* Stundenverschiebung: Kopf + Datum + Aktionsbutton fix, nur Unterrichtsliste scrollt. */
+#newShiftDialog #newShiftLessonList{
+  flex:1 1 auto;
+  max-height:none !important;
+  min-height:120px;
+}
+
+/* Stundenplaner – bestehendes Verhalten vereinheitlicht. */
+#plannerItemDialog #plannerEntityList{
+  flex:1 1 auto;
+  max-height:none !important;
+}
+
+/* Weitere lange Listen bleiben innerhalb ihres jeweiligen Bereichs scrollbar. */
+#eventParticipantList{
+  max-height:34dvh;
+}
+.playlist-audio-scroll-region{
+  max-height:32dvh;
+}
+.supplementary-member-scroll-region{
+  max-height:34dvh;
+}
+
+@media(max-height:700px){
+  .fixed-selection-dialog > .sheet,
+  .fixed-selection-dialog > form.sheet{
+    max-height:95dvh;
+  }
+  #newCreditDialog #creditEntityList,
+  #newShiftDialog #newShiftLessonList{
+    min-height:80px;
+  }
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -4990,7 +5105,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.30 – Account bearbeiten -->
+<!-- Taktvoll V0.26.31 – direkte Datumseingabe und fixe Auswahlfenster -->
 </head>
 <body>
   <div class="app">
@@ -5596,7 +5711,7 @@ input[type="number"]{
       <section class="card">
         <h3>Bereits vorhandene Audios auswählen</h3>
         <input id="playlistAudioSearch" placeholder="Audio suchen …">
-        <div id="playlistAudioChoices"></div>
+        <div id="playlistAudioChoices" class="fixed-dialog-scroll-region playlist-audio-scroll-region"></div>
       </section>
 
       <section class="card">
@@ -5753,7 +5868,7 @@ input[type="number"]{
           <button type="button" id="clearEventParticipantSearch" aria-label="Suche löschen">✕</button>
         </div>
 
-        <div id="eventParticipantList" class="event-participant-list"></div>
+        <div id="eventParticipantList" class="event-participant-list fixed-dialog-scroll-region"></div>
       </section>
 
       <button class="primary full" type="submit" value="default">Termin speichern</button>
@@ -5867,7 +5982,7 @@ input[type="number"]{
     </div>
   </dialog>
 
-  <dialog id="plannerItemDialog">
+  <dialog id="plannerItemDialog" class="fixed-selection-dialog">
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-head">
@@ -5897,7 +6012,7 @@ input[type="number"]{
             <span class="legend-unplanned">Noch nicht eingeteilt</span>
             <span class="legend-planned">Bereits eingeteilt</span>
           </div>
-          <div class="planner-entity-scroll-list" id="plannerEntityList"></div>
+          <div class="planner-entity-scroll-list fixed-dialog-scroll-region" id="plannerEntityList"></div>
           <input type="hidden" id="plannerEntitySelectedKey" value="">
         </div>
 
@@ -5934,7 +6049,7 @@ input[type="number"]{
     </div>
   </dialog>
 
-  <dialog id="newShiftDialog">
+  <dialog id="newShiftDialog" class="fixed-selection-dialog">
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-head">
@@ -5948,7 +6063,7 @@ input[type="number"]{
       <section class="card">
         <label class="small muted">Ursprünglicher Unterrichtstag</label>
         <input id="newShiftOriginalDate" type="date">
-        <div id="newShiftLessonList" class="shift-select-list"></div>
+        <div id="newShiftLessonList" class="shift-select-list fixed-dialog-scroll-region"></div>
       </section>
 
       <button type="button" class="primary full" id="createShiftRecordsBtn">Ausgewählte Stunden vormerken</button>
@@ -5991,7 +6106,7 @@ input[type="number"]{
     </div>
   </dialog>
 
-  <dialog id="newCreditDialog">
+  <dialog id="newCreditDialog" class="fixed-selection-dialog">
     <div class="sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-head">
@@ -6012,7 +6127,7 @@ input[type="number"]{
 
         <div style="height:10px"></div>
         <label class="small muted">Schüler / Ergänzungsfächer</label>
-        <div id="creditEntityList" class="shift-select-list"></div>
+        <div id="creditEntityList" class="shift-select-list fixed-dialog-scroll-region"></div>
       </section>
 
       <button type="button" class="primary full" id="createCreditsBtn">Plusstunden speichern</button>
@@ -6291,7 +6406,7 @@ input[type="number"]{
           <h3>Mitglieder</h3>
           <button type="button" class="secondary" id="addMemberBtn">+ Mitglied</button>
         </div>
-        <div id="ensembleEditMembers"></div>
+        <div id="ensembleEditMembers" class="fixed-dialog-scroll-region supplementary-member-scroll-region"></div>
       </section>
 
       <button class="primary full" type="submit" value="default">Ergänzungsfach speichern</button>
@@ -7347,6 +7462,150 @@ function loadState(){
 }
 
 
+
+function formatIsoDateForManual(value,includeTime=false){
+  const raw=String(value||"").trim();
+  if(!raw) return "";
+
+  if(includeTime){
+    const m=raw.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if(!m) return "";
+    return `${m[3]}.${m[2]}.${m[1]} ${m[4]}:${m[5]}`;
+  }
+
+  const m=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return "";
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
+function parseManualDateValue(value,includeTime=false){
+  const raw=String(value||"").trim();
+  if(!raw) return "";
+
+  if(includeTime){
+    const m=raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})(?:\s+|,\s*)(\d{1,2}):(\d{2})$/);
+    if(!m) return null;
+
+    const day=Number(m[1]),month=Number(m[2]),year=Number(m[3]);
+    const hour=Number(m[4]),minute=Number(m[5]);
+    const test=new Date(year,month-1,day,hour,minute);
+    if(
+      test.getFullYear()!==year ||
+      test.getMonth()!==month-1 ||
+      test.getDate()!==day ||
+      hour<0 || hour>23 || minute<0 || minute>59
+    ) return null;
+
+    return `${String(year).padStart(4,"0")}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}T${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+  }
+
+  const m=raw.match(/^(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})$/);
+  if(!m) return null;
+
+  const day=Number(m[1]),month=Number(m[2]),year=Number(m[3]);
+  const test=new Date(year,month-1,day);
+  if(test.getFullYear()!==year || test.getMonth()!==month-1 || test.getDate()!==day) return null;
+
+  return `${String(year).padStart(4,"0")}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+}
+
+function enhanceTaktvollDateInputs(root=document){
+  const dateInputs=[
+    ...(root.matches?.('input[type="date"],input[type="datetime-local"]')?[root]:[]),
+    ...root.querySelectorAll?.('input[type="date"],input[type="datetime-local"]')||[]
+  ];
+
+  dateInputs.forEach(nativeInput=>{
+    if(nativeInput.dataset.taktvollDateEnhanced==="1") return;
+    nativeInput.dataset.taktvollDateEnhanced="1";
+
+    const includeTime=nativeInput.type==="datetime-local";
+    const wrapper=document.createElement("div");
+    wrapper.className="taktvoll-date-entry";
+
+    const manual=document.createElement("input");
+    manual.type="text";
+    manual.inputMode="numeric";
+    manual.autocomplete="off";
+    manual.className="taktvoll-date-manual";
+    manual.placeholder=includeTime?"TT.MM.JJJJ HH:MM":"TT.MM.JJJJ";
+    manual.setAttribute("aria-label",includeTime?"Datum und Uhrzeit direkt eingeben":"Datum direkt eingeben");
+
+    const hint=document.createElement("div");
+    hint.className="taktvoll-date-hint";
+    hint.textContent=includeTime
+      ?"Direkte Eingabe: TT.MM.JJJJ HH:MM"
+      :"Direkte Eingabe: TT.MM.JJJJ";
+
+    nativeInput.parentNode.insertBefore(wrapper,nativeInput);
+    wrapper.appendChild(manual);
+    wrapper.appendChild(nativeInput);
+    wrapper.appendChild(hint);
+
+    const syncManual=()=>{
+      manual.value=formatIsoDateForManual(nativeInput.value,includeTime);
+      manual.classList.remove("date-invalid");
+    };
+
+    const applyManual=()=>{
+      const parsed=parseManualDateValue(manual.value,includeTime);
+      if(parsed===null){
+        manual.classList.add("date-invalid");
+        return false;
+      }
+      manual.classList.remove("date-invalid");
+      nativeInput.value=parsed;
+      nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
+      return true;
+    };
+
+    nativeInput.addEventListener("change",syncManual);
+    nativeInput.addEventListener("input",syncManual);
+
+    manual.addEventListener("focus",()=>{
+      if(nativeInput.value) syncManual();
+    });
+
+    manual.addEventListener("change",applyManual);
+    manual.addEventListener("blur",()=>{
+      if(!manual.value.trim()){
+        nativeInput.value="";
+        nativeInput.dispatchEvent(new Event("change",{bubbles:true}));
+        manual.classList.remove("date-invalid");
+        return;
+      }
+      applyManual();
+    });
+
+    manual.addEventListener("keydown",e=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        if(applyManual()) manual.blur();
+      }
+    });
+
+    syncManual();
+  });
+}
+
+function syncTaktvollManualDateInputs(){
+  document.querySelectorAll(".taktvoll-date-entry").forEach(wrapper=>{
+    const nativeInput=wrapper.querySelector('input[type="date"],input[type="datetime-local"]');
+    const manual=wrapper.querySelector(".taktvoll-date-manual");
+    if(!nativeInput || !manual) return;
+    manual.value=formatIsoDateForManual(nativeInput.value,nativeInput.type==="datetime-local");
+    manual.classList.remove("date-invalid");
+  });
+}
+
+const taktvollDateObserver=new MutationObserver(mutations=>{
+  mutations.forEach(mutation=>{
+    mutation.addedNodes.forEach(node=>{
+      if(node.nodeType===1) enhanceTaktvollDateInputs(node);
+    });
+  });
+});
+
 function populateLocationSelect(selectEl, schoolId, selectedValue=""){
   const locations=state.schools[schoolId]?.locations||[];
   selectEl.innerHTML = locations.length
@@ -7450,6 +7709,7 @@ function render(){
     const markup=view();
     content.innerHTML=markup;
     bindViewEvents();
+    enhanceTaktvollDateInputs(content);
   }catch(err){
     console.error("Taktvoll Renderfehler:",state.tab,err);
     content.innerHTML=`
@@ -14208,6 +14468,17 @@ async function initTaktvollAuth(){
   }
 }
 
+
+document.addEventListener("click",()=>{
+  requestAnimationFrame(syncTaktvollManualDateInputs);
+},true);
+
+document.addEventListener("focusin",e=>{
+  if(e.target.matches?.('input[type="date"],input[type="datetime-local"],.taktvoll-date-manual')){
+    requestAnimationFrame(syncTaktvollManualDateInputs);
+  }
+});
+
 /* Auth UI */
 document.querySelectorAll("[data-auth-mode]").forEach(btn=>{
   btn.addEventListener("click",()=>updateAuthMode(btn.dataset.authMode));
@@ -14267,6 +14538,9 @@ $("#saveNewPasswordBtn").addEventListener("click",async()=>{
   alert("Dein Passwort wurde geändert.");
 });
 
+
+enhanceTaktvollDateInputs(document);
+taktvollDateObserver.observe(document.body,{childList:true,subtree:true});
 
 loadState();
 if(!state.selectedAttendanceDate) state.selectedAttendanceDate=new Date().toISOString().slice(0,10);
