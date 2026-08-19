@@ -5093,6 +5093,30 @@ input[type="number"]{
   }
 }
 
+
+/* V0.26.32 – verwaiste / alte Ergänzungsfächer */
+.orphan-supplementary-card{
+  border-style:dashed;
+}
+.orphan-supplementary-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.orphan-supplementary-row{
+  align-items:flex-start;
+}
+.orphan-supplementary-actions{
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.orphan-supplementary-actions button{
+  white-space:nowrap;
+}
+
 </style>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
@@ -5105,7 +5129,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.31 – direkte Datumseingabe und fixe Auswahlfenster -->
+<!-- Taktvoll V0.26.32 – Phantom-Ergänzungsfach / Legacy-Migration behoben -->
 </head>
 <body>
   <div class="app">
@@ -7373,17 +7397,21 @@ function loadState(){
     }));
 
     if(saved.ensemble) state.ensemble=saved.ensemble;
+    const savedHasSupplementarySubjects=Object.prototype.hasOwnProperty.call(saved,"supplementarySubjects");
     if(Array.isArray(saved.supplementarySubjects)) state.supplementarySubjects=saved.supplementarySubjects;
     if(!Array.isArray(state.supplementarySubjects)) state.supplementarySubjects=[];
 
-    if(state.supplementarySubjects.length===0 && state.ensemble){
+    /* Legacy-Migration nur für wirklich alte Datensätze, die das Feld
+       supplementarySubjects noch gar nicht kannten.
+       Ein bewusst leeres Array darf KEIN altes Demo-/ensemble-Objekt zurückholen. */
+    if(!savedHasSupplementarySubjects && saved.ensemble){
       state.supplementarySubjects=[{
-        ...state.ensemble,
-        id:String(state.ensemble.id||"ens-1"),
+        ...saved.ensemble,
+        id:String(saved.ensemble.id||"legacy-ensemble"),
         type:"regular",
-        unit:state.ensemble.unit||"E30",
-        members:Array.isArray(state.ensemble.members)?state.ensemble.members:[],
-        last:state.ensemble.last||""
+        unit:saved.ensemble.unit||"E30",
+        members:Array.isArray(saved.ensemble.members)?saved.ensemble.members:[],
+        last:saved.ensemble.last||""
       }];
     }
 
@@ -7452,11 +7480,13 @@ function loadState(){
     Object.keys(state.schools).forEach(id=>{
       if(!Array.isArray(state.calendars[id])) state.calendars[id]=[];
     });
-    if(!state.ensemble.location){
-      state.ensemble.location=(state.schools[state.ensemble.school]?.locations||[])[0]||"";
+    if(state.ensemble){
+      if(!state.ensemble.location){
+        state.ensemble.location=(state.schools[state.ensemble.school]?.locations||[])[0]||"";
+      }
+      if(state.ensemble.weekday==null) state.ensemble.weekday="";
+      if(state.ensemble.time==null) state.ensemble.time="";
     }
-    if(state.ensemble.weekday==null) state.ensemble.weekday="";
-    if(state.ensemble.time==null) state.ensemble.time="";
     if(Array.isArray(saved.logs)) state.logs=saved.logs;
   }catch(e){ console.warn("Gespeicherte Daten konnten nicht geladen werden",e); }
 }
@@ -8812,6 +8842,7 @@ function buildPlannerDraftFromCurrent(){
     raw.push({type:"student",id:s.id,school:s.school,weekday:s.weekday,time:s.time,duration:unitMinutes(s.unit||"E30")});
   });
   (state.supplementarySubjects||[]).forEach(s=>{
+    if(!s.school || !state.schools?.[s.school]) return;
     if(plannerScope!=="all" && s.school!==plannerScope) return;
     if(!s.weekday || !s.time) return;
     raw.push({type:"supplementary",id:s.id,school:s.school,weekday:s.weekday,time:s.time,duration:unitMinutes(s.unit||"E30")});
@@ -9248,7 +9279,9 @@ function scheduledEntitiesForDate(date){
     type:"student",id:s.id,name:s.name,school:s.school,time:s.time,
     duration:unitMinutes(s.unit||"E30"),meta:`${s.unit||"E30"} ${s.instrument||""}`
   }));
-  (state.supplementarySubjects||[]).filter(s=>!!s.weekday && !!s.time && s.weekday===day).forEach(s=>result.push({
+  (state.supplementarySubjects||[])
+    .filter(s=>!!s.weekday && !!s.time && s.weekday===day && !!s.school && !!state.schools?.[s.school])
+    .forEach(s=>result.push({
     type:"supplementary",id:s.id,name:s.name,school:s.school,time:s.time,
     duration:unitMinutes(s.unit||"E30"),meta:`${s.unit||"E30"} Ergänzungsfach`
   }));
@@ -9741,6 +9774,31 @@ function renderStudentOverviewSearchDropdown(){
     });
   });
 }
+
+function orphanSupplementarySubjects(){
+  return (state.supplementarySubjects||[])
+    .filter(s=>!s.school || !state.schools?.[s.school])
+    .sort(alphaByName);
+}
+
+function isLikelyLegacyPhantomSupplementary(subject){
+  if(!subject) return false;
+  const id=String(subject.id||"").toLowerCase();
+  const name=String(subject.name||"").toLowerCase();
+  return (
+    id==="ens-1" ||
+    id==="legacy-ensemble" ||
+    name==="ergänzungsfach tiefes blech"
+  ) && (!subject.school || !state.schools?.[subject.school]);
+}
+
+function removeLegacyPhantomSupplementaries(){
+  const before=(state.supplementarySubjects||[]).length;
+  state.supplementarySubjects=(state.supplementarySubjects||[])
+    .filter(s=>!isLikelyLegacyPhantomSupplementary(s));
+  return before-state.supplementarySubjects.length;
+}
+
 function renderStudents(){
   const schoolEntries=Object.entries(state.schools)
     .sort((a,b)=>(a[1]?.name||"").localeCompare(b[1]?.name||"","de",{sensitivity:"base"}));
@@ -9890,6 +9948,42 @@ function renderStudents(){
     </div>
 
     ${schoolBlocks||`<div class="card"><p class="muted">Keine passenden Einträge gefunden.</p></div>`}
+
+    ${orphanSupplementarySubjects().length?`
+      <section class="card orphan-supplementary-card">
+        <div class="eyebrow">FEHLERBEHEBUNG</div>
+        <h3>Nicht zugeordnete Ergänzungsfächer</h3>
+        <p class="muted small">
+          Diese Einträge verweisen auf eine Musikschule, die nicht mehr existiert.
+          Sie können aus älteren Taktvoll-Versionen stammen und deshalb im Kalender
+          als „Unbekannte Musikschule“ erscheinen.
+        </p>
+
+        <div class="orphan-supplementary-list">
+          ${orphanSupplementarySubjects().map(e=>`
+            <div class="list-row supplementary-overview-row orphan-supplementary-row">
+              <div class="supplementary-overview-copy">
+                <div class="bold">${e.name||"Ergänzungsfach"}</div>
+                <div class="muted small">
+                  ${e.weekday||"Kein Wochentag"} ${e.time||""}
+                  ${e.location?` · ${e.location}`:""}
+                </div>
+                <div class="muted small">Musikschule: nicht mehr vorhanden</div>
+              </div>
+              <div class="orphan-supplementary-actions">
+                <button type="button" class="secondary edit-supplementary-btn" data-id="${e.id}">Bearbeiten</button>
+                <button type="button" class="secondary delete-orphan-supplementary-btn" data-id="${e.id}">Löschen</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+
+        ${orphanSupplementarySubjects().some(isLikelyLegacyPhantomSupplementary)?`
+          <button type="button" class="secondary full" id="removeLegacyPhantomBtn" style="margin-top:10px">
+            Alten Phantom-Eintrag entfernen
+          </button>`:""}
+      </section>
+    `:""}
   `;
 }
 
@@ -11514,6 +11608,45 @@ function bindViewEvents(){
   $("#openTimetablePlannerBtn")?.addEventListener("click",()=>openTimetablePlanner("all"));
   $("#openShiftManagerBtn")?.addEventListener("click",()=>openShiftManager("shifts"));
   document.querySelectorAll(".edit-supplementary-btn").forEach(btn=>btn.addEventListener("click",()=>openSupplementaryEditor(btn.dataset.id)));
+
+  document.querySelectorAll(".delete-orphan-supplementary-btn").forEach(btn=>btn.addEventListener("click",()=>{
+    const id=btn.dataset.id;
+    const e=(state.supplementarySubjects||[]).find(x=>String(x.id)===String(id));
+    if(!e) return;
+
+    if(confirm(`„${e.name||"Ergänzungsfach"}“ wirklich löschen?`)){
+      state.supplementarySubjects=(state.supplementarySubjects||[])
+        .filter(x=>String(x.id)!==String(id));
+
+      /* Falls derselbe alte Datensatz noch im Legacy-Feld liegt, dort ebenfalls entfernen. */
+      if(state.ensemble && String(state.ensemble.id)===String(id)){
+        state.ensemble=null;
+      }
+
+      saveState();
+      render();
+    }
+  }));
+
+  $("#removeLegacyPhantomBtn")?.addEventListener("click",()=>{
+    const count=orphanSupplementarySubjects().filter(isLikelyLegacyPhantomSupplementary).length;
+    if(!count) return;
+
+    if(confirm("Den alten automatisch übernommenen Phantom-Eintrag endgültig entfernen?")){
+      const removed=removeLegacyPhantomSupplementaries();
+
+      if(state.ensemble && isLikelyLegacyPhantomSupplementary(state.ensemble)){
+        state.ensemble=null;
+      }
+
+      if(removed){
+        saveState();
+        render();
+      }
+    }
+  });
+
+
   document.querySelectorAll(".edit-student-btn").forEach(btn=>btn.addEventListener("click",()=>openStudentEditor(Number(btn.dataset.id))));
   
   $("#editEnsembleBtn")?.addEventListener("click",openEnsembleEditor);
