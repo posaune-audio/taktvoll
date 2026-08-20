@@ -2,6 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdn.sheetjs.com 'sha256-AIFuPg9MHZmuZJ+dOqXa16ovKxMDnQWz4ZxtnnO7SDo=' 'sha256-4ozJOu8e2kxHrc+ZpSKV7UByvx5uDwA28yDtQsh04mc=' 'sha256-m2E5Otqdly4Q5cJrDtEiYj/nasT84mQApK8AX3xjpEI='; script-src-attr 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.qrserver.com https://ewaekrkjeaacengehqcl.supabase.co; media-src 'self' blob: https://taktvoll-audio.9z6hnrbb5j.workers.dev https://ewaekrkjeaacengehqcl.supabase.co; connect-src 'self' https://ewaekrkjeaacengehqcl.supabase.co wss://ewaekrkjeaacengehqcl.supabase.co https://taktvoll-audio.9z6hnrbb5j.workers.dev; font-src 'self' data:; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <title>Taktvoll</title>
@@ -5769,7 +5771,7 @@ input[type="number"]{
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/taktvoll-icon-v2-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icons/taktvoll-icon-v2-512.png">
-<!-- Taktvoll V0.26.49 – Stundenplan als iPhone-Hintergrundbild -->
+<!-- Taktvoll V0.26.50 – Security Hardening / CSP / Logout-Datenlöschung -->
 </head>
 <body>
   <div class="app">
@@ -7328,6 +7330,39 @@ const state = {
 const titleMap = {today:"Anwesenheitsliste",students:"Schüler & Ergänzungsfächer",library:"Bibliothek",calendar:"Termine",docs:"Dokumentation"};
 const $ = q => document.querySelector(q);
 
+/* Security helpers – user-entered values stay data, never executable code. */
+function escapeHtml(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#39;");
+}
+
+function escapeAttr(value){
+  return escapeHtml(value).replaceAll("`","&#96;");
+}
+
+function safeExternalUrl(value){
+  try{
+    const url=new URL(String(value||""),location.href);
+    if(url.protocol==="https:" || url.protocol==="blob:") return url.href;
+  }catch(_){}
+  return "";
+}
+
+function clearTaktvollLocalSensitiveData(){
+  try{
+    localStorage.removeItem("taktvoll_state_v04");
+    localStorage.removeItem("taktvoll_local_updated_at");
+    localStorage.removeItem("taktvoll_cloud_admin_token");
+    localStorage.removeItem("taktvoll_admin_token");
+  }catch(_){}
+}
+
+
+
 function currentSchool(){ return state.schools[state.school] || {name:"Keine Musikschule",state:"",locations:[]}; }
 
 const FILE_DB_NAME="taktvoll_files";
@@ -8867,8 +8902,8 @@ function renderFreeDayWarnings(items){
     return `
       <div class="card free-day ${allSaved?"completed-day":""}">
         <div style="font-size:22px;font-weight:900;color:#b42318;margin-bottom:4px">SCHULFREI</div>
-        <h3>${info}</h3>
-        <p class="small">${sc.name} · ${sc.state}</p>
+        <h3>${escapeHtml(info)}</h3>
+        <p class="small">${escapeHtml(sc.name)} · ${escapeHtml(sc.state)}</p>
         <p class="small"><strong>Der gesamte Unterrichtstag ist schulfrei.</strong> Alle geplanten Schüler:innen und Ergänzungsfächer sind unten bereits als „Nicht gehalten · Schulfrei“ vorausgewählt.</p>
         ${allSaved
           ? `<strong>✓ Gesamter Tag bereits gespeichert</strong>`
@@ -10261,7 +10296,7 @@ function renderNewShiftLessonList(){
     <label class="shift-check-row">
       <input type="checkbox" class="new-shift-check" data-index="${i}">
       <span>
-        <strong>${l.time} · ${l.name}</strong>
+        <strong>${escapeHtml(l.time)} · ${escapeHtml(l.name)}</strong>
         <small>${l.meta} · ${schoolShortName(l.school)}</small>
       </span>
     </label>`).join(""):`<p class="muted small">An diesem Unterrichtstag sind keine Schüler oder Ergänzungsfächer eingeteilt.</p>`;
@@ -10442,7 +10477,7 @@ function renderCreditEntityList(){
                data-key="${key}"
                ${pendingCreditEntityKeys.has(key)?"checked":""}>
         <span>
-          <strong>${e.name}</strong>
+          <strong>${escapeHtml(e.name)}</strong>
           <small>${[
             e.meta,
             e.schoolName,
@@ -11537,7 +11572,7 @@ function renderSupplementaryEditMembers(){
         return `
           <div class="supplementary-member-edit-row">
             <div class="supplementary-member-copy">
-              <div class="bold">${displayName}</div>
+              <div class="bold">${escapeHtml(displayName)}</div>
               <div class="muted small">${linked ? `Bestehender Schüler${linked.instrument?` · ${linked.instrument}`:""}` : "Externes Mitglied · nur in diesem Ergänzungsfach"}</div>
             </div>
             <button type="button"
@@ -11646,7 +11681,7 @@ function renderSupplementaryStudentChoices(){
                data-student-id="${s.id}"
                ${checked?"checked":""}>
         <span class="supplementary-student-check-copy">
-          <strong>${entry.fullName}</strong>
+          <strong>${escapeHtml(entry.fullName)}</strong>
           ${meta?`<small>${meta}</small>`:""}
         </span>
       </label>`;
@@ -11933,7 +11968,7 @@ function renderEventParticipantEditor(){
           <input type="checkbox" class="event-participant-checkbox"
                  data-type="${e.type}" data-id="${e.id}" ${picked?"checked":""}>
           <span>
-            <strong>${e.name}</strong>
+            <strong>${escapeHtml(e.name)}</strong>
             <small>${e.meta}</small>
           </span>
         </label>
@@ -14737,13 +14772,13 @@ async function exportTimetableWallpapers(schoolScope="all",dayMode="all"){
         </p>
         ${generated.map(item=>`
           <div class="wallpaper-export-item">
-            <img src="${item.url}" alt="Stundenplan ${item.day}">
+            <img src="${escapeAttr(safeExternalUrl(item.url))}" alt="Stundenplan ${escapeAttr(item.day)}">
             <div class="wallpaper-export-actions">
               <div>
-                <div class="bold">${item.day}</div>
-                <div class="muted small">${item.filename}</div>
+                <div class="bold">${escapeHtml(item.day)}</div>
+                <div class="muted small">${escapeHtml(item.filename)}</div>
               </div>
-              <a class="primary" href="${item.url}" target="_blank" rel="noopener">Bild öffnen</a>
+              <a class="primary" href="${escapeAttr(safeExternalUrl(item.url))}" target="_blank" rel="noopener">Bild öffnen</a>
             </div>
           </div>
         `).join("")}
@@ -15209,7 +15244,7 @@ function showSafeExportFile(blob,filename,label){
            target="_blank"
            download="${esc(filename)}"
            class="primary full"
-           style="display:flex;box-sizing:border-box;text-decoration:none;align-items:center;justify-content:center">
+           style="display:flex;box-sizing:border-box;text-decoration:none;align-items:center;justify-content:center" rel="noopener noreferrer">
           ${label}
         </a>
       </div>`;
@@ -15970,17 +16005,22 @@ async function openAccountDialog(){
 
 async function logoutTaktvoll(){
   if(!taktvollSupabase) return;
+
   await cloudUpsertState();
+
   const {error}=await taktvollSupabase.auth.signOut();
   if(error){
     alert(error.message);
     return;
   }
+
   taktvollAuthSession=null;
   taktvollCloudReady=false;
-  updateAccountButton();
-  $("#accountDialog").close();
-  showAuthDialog();
+  clearTaktvollLocalSensitiveData();
+
+  try{$("#accountDialog").close();}catch(_){}
+
+  location.reload();
 }
 
 function updateAccountButton(){
